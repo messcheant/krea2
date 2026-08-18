@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-
+# Menghentikan eksekusi jika ada error pada sistem
 set -euo pipefail
 
-
+# Memastikan kita berada di direktori ComfyUI
 cd /workspace/ComfyUI
 
 echo "==> Membuat struktur direktori model..."
@@ -29,9 +29,9 @@ cd /workspace/ComfyUI/custom_nodes
 [ -d ComfyUI-KJNodes ] || git clone https://github.com/kijai/ComfyUI-KJNodes
 
 echo "==> Menginstal dependencies Custom Nodes..."
-
+# Skrip cerdas Anda untuk mencari dan menginstal semua requirements.txt
 find . -maxdepth 2 -name "requirements.txt" -print -exec pip install --no-cache-dir -r {} \;
 
 echo "==> Memulai ComfyUI..."
 cd /workspace/ComfyUI
-exec python main.py --listen 0.0.0.0 --port 8188
+exec python main.py --listen 0.0.0.0 --port 8188 --highvram
