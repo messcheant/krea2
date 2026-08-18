@@ -25,9 +25,24 @@ cd /workspace/runpod-slim/ComfyUI/custom_nodes
 [ -d ComfyUI-Pixaroma ] || git clone https://github.com/pixaroma/ComfyUI-Pixaroma
 [ -d ComfyUI-KJNodes ] || git clone https://github.com/kijai/ComfyUI-KJNodes
 
-# install node requirements (optional tapi biasanya perlu)
+# install node requirements
 find . -maxdepth 2 -name "requirements.txt" -print -exec pip install --no-cache-dir -r {} \;
 
-# start comfy
+# ======================
+# Start Jupyter Lab
+# ======================
+cd /workspace
+nohup jupyter lab \
+  --ip=0.0.0.0 \
+  --port=8888 \
+  --no-browser \
+  --allow-root \
+  --NotebookApp.token='' \
+  --NotebookApp.password='' \
+  > /workspace/jupyter.log 2>&1 &
+
+# ======================
+# Start ComfyUI
+# ======================
 cd /workspace/runpod-slim/ComfyUI
 exec python main.py --listen 0.0.0.0 --port 8188
