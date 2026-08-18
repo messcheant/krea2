@@ -1,5 +1,4 @@
-# Menggunakan base image PyTorch CUDA 12.8 pilihan Anda
-FROM pytorch/pytorch:2.6.0-cuda12.8-cudnn9-runtime
+FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -21,9 +20,9 @@ WORKDIR /workspace/ComfyUI
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-
 RUN pip install --no-cache-dir onnxruntime-gpu --extra-index-url https://pypi.ngc.nvidia.com
 
+RUN pip install --no-cache-dir sageattention
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
