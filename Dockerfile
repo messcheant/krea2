@@ -2,7 +2,9 @@ FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y -qq \
+RUN rm -f /etc/apt/sources.list.d/cuda*.list \
+    && rm -f /etc/apt/sources.list.d/nvidia*.list \
+    && apt-get update && apt-get install -y \
     aria2 \
     git \
     wget \
