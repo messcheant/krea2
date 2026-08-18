@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cd /workspace/ComfyUI
+cd /workspace/runpod-slim/ComfyUI
 
 mkdir -p models/loras/krea2 models/diffusion_models/krea2 models/text_encoders models/vae
 
@@ -20,7 +20,7 @@ aria2c -x 16 -s 16 -k 1M -c -d models/loras/krea2 -o "Realistic-Snapshot.safeten
 aria2c -x 16 -s 16 -k 1M -c -d models/loras/krea2 -o "[BSS].safetensors" "https://huggingface.co/messcheant/keepfast/resolve/main/%5BBSS%5D.safetensors"
 
 # custom nodes
-cd /workspace/ComfyUI/custom_nodes
+cd /workspace/runpod-slim/ComfyUI/custom_nodes
 [ -d comfyui-krea2edit ] || git clone https://github.com/lbouaraba/comfyui-krea2edit
 [ -d ComfyUI-Pixaroma ] || git clone https://github.com/pixaroma/ComfyUI-Pixaroma
 [ -d ComfyUI-KJNodes ] || git clone https://github.com/kijai/ComfyUI-KJNodes
@@ -29,5 +29,5 @@ cd /workspace/ComfyUI/custom_nodes
 find . -maxdepth 2 -name "requirements.txt" -print -exec pip install --no-cache-dir -r {} \;
 
 # start comfy
-cd /workspace/ComfyUI
+cd /workspace/runpod-slim/ComfyUI
 exec python main.py --listen 0.0.0.0 --port 8188
