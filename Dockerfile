@@ -2,14 +2,15 @@ FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-devel
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN rm -f /etc/apt/sources.list.d/cuda*.list \
-    && rm -f /etc/apt/sources.list.d/nvidia*.list \
-    && apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y \
     aria2 \
     git \
     wget \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
 
