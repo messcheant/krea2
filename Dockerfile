@@ -3,7 +3,6 @@ FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-runtime
 ENV DEBIAN_FRONTEND=noninteractive \
     PIP_BREAK_SYSTEM_PACKAGES=1 \
     PYTHONUNBUFFERED=1 \
-    JUPYTER_TOKEN=comfy \
     JUPYTER_PORT=8888
  
 RUN apt-get update -qq && \
