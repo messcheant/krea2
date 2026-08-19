@@ -1,4 +1,4 @@
-FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-devel
+FROM yanwk/comfyui-boot:cu128-slim
 
 USER root
 
