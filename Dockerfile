@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 RUN pip install --no-cache-dir \
     --index-url https://wheels.astral.sh/simple/cu128/ \
     --extra-index-url https://pypi.org/simple \
-    "sageattention==2.2.0.post4"
+    "sageattention==2.2.0+cu.12.8.torch.2.11"
 
 COPY start.sh /start.sh
 
