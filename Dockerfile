@@ -1,7 +1,6 @@
 FROM pytorch/pytorch:2.11.0-cuda12.8-cudnn9-devel
 
-ENV DEBIAN_FRONTEND=noninteractive
-ENV PIP_BREAK_SYSTEM_PACKAGES=1
+USER root
 
 RUN apt-get update -qq && apt-get install -y -qq \
     aria2 \
@@ -11,22 +10,11 @@ RUN apt-get update -qq && apt-get install -y -qq \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /workspace
-
-RUN git clone https://github.com/comfyanonymous/ComfyUI.git
-
-WORKDIR /workspace/ComfyUI
-
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
 RUN pip install --no-cache-dir onnxruntime-gpu --extra-index-url https://pypi.ngc.nvidia.com
 
-RUN pip install --no-cache-dir sageattention
 
-COPY start.sh /start.sh
-RUN chmod +x /start.sh
+COPY start.sh /root/user-scripts/01-krea2-setup.sh
+RUN chmod +x /root/user-scripts/01-krea2-setup.sh
 
-EXPOSE 8188
 
-CMD ["/start.sh"]
+ENV CLI_ARGS="--use-ck-attention --listen 0.0.0.0 --port 8188"
