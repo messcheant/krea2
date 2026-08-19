@@ -33,8 +33,8 @@ download() {
 
 download \
     models/diffusion_models/krea2 \
-    "LUSTIFY!-int8.safetensors" \
-    "https://huggingface.co/messcheant/keepfast/resolve/main/model/LUSTIFY!-int8.safetensors"
+    "RedCraft.safetensors" \
+    "https://huggingface.co/messcheant/keepfast/resolve/main/model/RedCraft.safetensors?download=true"
 
 download \
     models/text_encoders \
@@ -58,8 +58,13 @@ download \
 
 download \
     models/loras/krea2 \
-    "Realistic-Snapshot.safetensors" \
-    "https://huggingface.co/messcheant/keepfast/resolve/main/Realistic-Snapshot.safetensors"
+    "real-fake-beast-slider.safetensors" \
+    "https://huggingface.co/messcheant/keepfast/resolve/main/real-fake-beast-slider.safetensors?download=true"
+
+download \
+    models/loras/krea2 \
+    "breast-slider.safetensors" \
+    "https://huggingface.co/messcheant/keepfast/resolve/main/breast-slider.safetensors"
 
 cd /workspace/ComfyUI/custom_nodes
 
