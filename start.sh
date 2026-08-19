@@ -27,7 +27,7 @@ download models/loras/krea2 "[BSS].safetensors" "https://huggingface.co/messchea
 cd /workspace/ComfyUI/custom_nodes
 [ -d comfyui-krea2edit ] || git clone --depth 1 https://github.com/lbouaraba/comfyui-krea2edit
 [ -d ComfyUI-Pixaroma ] || git clone --depth 1 https://github.com/pixaroma/ComfyUI-Pixaroma
-[ -d ComfyUI-KJNodes ] || git clone --depth 1 https://github.com/kijai/ComfyUI-KJNodes
+[ -d ComfyUI-KJNodes ] || git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager
 
 find . -maxdepth 2 -name "requirements.txt" -exec pip install --no-cache-dir -r {} \;
 
@@ -38,7 +38,7 @@ jupyter lab \
     --port="${JUPYTER_PORT:-8888}" \
     --no-browser \
     --allow-root \
-    --NotebookApp.token="${JUPYTER_TOKEN:-comfy}" \
+    --NotebookApp.token='' \
     --NotebookApp.password='' \
     --ServerApp.root_dir=/workspace \
     > /tmp/jupyter.log 2>&1 &
