@@ -2,13 +2,14 @@ FROM yanwk/comfyui-boot:cu128-slim
 
 USER root
 
-RUN apt-get update -qq && apt-get install -y -qq \
-    aria2 \
-    git \
-    wget \
-    libgl1 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+RUN zypper --non-interactive refresh && \
+    zypper --non-interactive install --no-confirm \
+      aria2 \
+      git \
+      wget \
+      libglvnd \
+      glib2 \
+    && zypper clean --all
 
 RUN pip install --no-cache-dir onnxruntime-gpu --extra-index-url https://pypi.ngc.nvidia.com
 
