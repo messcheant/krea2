@@ -27,7 +27,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:3
+            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:3.5
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
