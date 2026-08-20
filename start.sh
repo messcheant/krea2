@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Jika ada argumen, jalankan perintah itu saja (untuk fleksibilitas)
 if [ "$#" -gt 0 ]; then
     exec "$@"
+fi
+
+# Aktifkan virtualenv Vast.ai (penting!)
+if [ -f /venv/main/bin/activate ]; then
+    # shellcheck disable=SC1091
+    source /venv/main/bin/activate
 fi
 
 cd /workspace/ComfyUI
@@ -19,6 +26,7 @@ download() {
     local url="$3"
 
     if [ ! -f "${dir}/${out}" ]; then
+        echo ">>> Downloading ${out} ..."
         aria2c \
             -x 16 \
             -s 16 \
@@ -28,13 +36,15 @@ download() {
             -d "$dir" \
             -o "$out" \
             "$url"
+    else
+        echo ">>> ${out} already exists, skip."
     fi
 }
 
 download \
     models/diffusion_models/krea2 \
-    "RedCraft.safetensors" \
-    "https://huggingface.co/messcheant/keepfast/resolve/main/model/RedCraft.safetensors?download=true"
+    "LUSTIFY!-int8.safetensors" \
+    "https://huggingface.co/messcheant/keepfast/resolve/main/model/LUSTIFY!-int8.safetensors"
 
 download \
     models/text_encoders \
@@ -58,46 +68,37 @@ download \
 
 download \
     models/loras/krea2 \
-    "real-fake-beast-slider.safetensors" \
-    "https://huggingface.co/messcheant/keepfast/resolve/main/real-fake-beast-slider.safetensors?download=true"
+    "Realistic-Snapshot.safetensors" \
+    "https://huggingface.co/messcheant/keepfast/resolve/main/Realistic-Snapshot.safetensors"
 
-download \
-    models/loras/krea2 \
-    "breast-slider.safetensors" \
-    "https://huggingface.co/messcheant/keepfast/resolve/main/breast-slider.safetensors"
-
+# === Custom Nodes ===
 cd /workspace/ComfyUI/custom_nodes
 
 [ -d comfyui-krea2edit ] || \
-    git clone --depth 1 \
-    https://github.com/lbouaraba/comfyui-krea2edit
+    git clone --depth 1 https://github.com/lbouaraba/comfyui-krea2edit
 
 [ -d ComfyUI-Pixaroma ] || \
-    git clone --depth 1 \
-    https://github.com/pixaroma/ComfyUI-Pixaroma
+    git clone --depth 1 https://github.com/pixaroma/ComfyUI-Pixaroma
 
 [ -d ComfyUI-KJNodes ] || \
-    git clone --depth 1 \
-    https://github.com/kijai/ComfyUI-KJNodes
+    git clone --depth 1 https://github.com/kijai/ComfyUI-KJNodes
 
 [ -d ComfyUI-Manager ] || \
-    git clone --depth 1 \
-    https://github.com/ltdrdata/ComfyUI-Manager
+    git clone --depth 1 https://github.com/ltdrdata/ComfyUI-Manager
 
 [ -d ComfyUI-Krea2T-Enhancer ] || \
-    git clone --depth 1 \
-    https://github.com/capitan01R/ComfyUI-Krea2T-Enhancer
+    git clone --depth 1 https://github.com/capitan01R/ComfyUI-Krea2T-Enhancer
 
-find . \
-    -maxdepth 2 \
-    -name "requirements.txt" \
-    -print0 |
+# Install requirements custom nodes
+find . -maxdepth 2 -name "requirements.txt" -print0 | \
 while IFS= read -r -d '' req; do
-    pip install --no-cache-dir -r "$req"
+    echo ">>> Installing requirements from $req"
+    pip install --no-cache-dir -r "$req" || true
 done
 
 cd /workspace/ComfyUI
 
+# === Start Jupyter (background) ===
 jupyter lab \
     --ip=0.0.0.0 \
     --port="${JUPYTER_PORT:-8888}" \
@@ -111,28 +112,32 @@ jupyter lab \
 
 JUPYTER_PID=$!
 
+# Tunggu Jupyter siap
 for i in {1..30}; do
     if ! kill -0 "$JUPYTER_PID" 2>/dev/null; then
+        echo "Jupyter failed to start:"
         cat /tmp/jupyter.log || true
         exit 1
     fi
 
-    if curl -fsS \
-        "http://127.0.0.1:${JUPYTER_PORT:-8888}/api" \
-        >/dev/null 2>&1; then
+    if curl -fsS "http://127.0.0.1:${JUPYTER_PORT:-8888}/api" >/dev/null 2>&1; then
+        echo ">>> Jupyter is ready on port ${JUPYTER_PORT:-8888}"
         break
     fi
 
     if [ "$i" -eq 30 ]; then
+        echo "Jupyter timeout:"
         cat /tmp/jupyter.log || true
         exit 1
     fi
-
     sleep 1
 done
 
+# === Start ComfyUI (foreground) ===
+# Flag penting: --use-sage-attention + --listen 0.0.0.0 --port 8188
 exec python main.py \
     --listen 0.0.0.0 \
     --port 8188 \
+    --use-sage-attention \
     --highvram \
     --disable-dynamic-vram
