@@ -24,10 +24,10 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: ./new/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:vastai
+            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
