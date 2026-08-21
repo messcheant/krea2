@@ -1,109 +1,529 @@
+/* =========================================================
+   DOWNLOAD PAGE
+   ========================================================= */
+
 .download-page {
-    gap: 18px !important;
+    gap: 20px !important;
+
+    width: 100% !important;
     height: auto !important;
     min-height: 100% !important;
-    overflow: visible !important;
+
     padding-bottom: 56px !important;
+
+    overflow: visible !important;
+    box-sizing: border-box !important;
 }
+
+
+/* =========================================================
+   DOWNLOAD CARD
+   ========================================================= */
 
 .download-card {
-    flex: 0 0 auto !important;
-    background: #101319;
-    border: 1px solid #282f3a;
-    border-radius: 16px;
+    display: flex !important;
+    flex-direction: column !important;
+
+    width: 100% !important;
+    height: auto !important;
+
     padding: 18px !important;
-    gap: 14px !important;
+    gap: 18px !important;
+
+    box-sizing: border-box !important;
+
+    background: transparent !important;
+
+    border: 1px solid #262c36 !important;
+    border-radius: 14px !important;
+
+    box-shadow: none !important;
 }
+
+
+/* =========================================================
+   RESET GRADIO WRAPPERS
+   ========================================================= */
+
+.download-card > div,
+.download-card .form,
+.download-card .block {
+    box-sizing: border-box !important;
+
+    background: transparent !important;
+    border: none !important; /* PERBAIKAN: Menghilangkan border pada kotak wrapper dalam */
+    box-shadow: none !important;
+}
+
+
+/* Jangan beri margin manual pada kolom.
+   Semua jarak horizontal diatur oleh gap pada .download-row */
+.download-card .download-row > * {
+    min-width: 0 !important;
+
+    margin: 0 !important;
+    box-sizing: border-box !important;
+}
+
+
+/* =========================================================
+   ROW LAYOUT
+   ========================================================= */
 
 .download-card .download-row {
-    gap: 12px !important;
+    display: flex !important;
+
+    width: 100% !important;
+
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+
+    gap: 28px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    box-sizing: border-box !important;
 }
 
-.download-card label {
-    color: #9aa4b2 !important;
-    font-size: 11px !important;
-    font-weight: 600 !important;
-    letter-spacing: .03em;
+
+/* Kedua kolom selalu mempunyai ukuran yang sama */
+.download-card .download-row > * {
+    flex: 1 1 0 !important;
+    width: 0 !important;
 }
 
-.download-card input,
-.download-card textarea,
+
+/* =========================================================
+   COMPONENT WRAPPERS
+   ========================================================= */
+
+.download-card .download-row > div,
 .download-card .wrap,
 .download-card .secondary-wrap {
-    border-radius: 10px !important;
+    background: transparent !important;
+    border: none !important; /* PERBAIKAN: Menghilangkan sisa border wrapper */
+    box-shadow: none !important;
+
+    box-sizing: border-box !important;
 }
+
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.download-card label {
+    color: #8f99a8 !important;
+
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1.2 !important;
+
+    letter-spacing: .025em !important;
+}
+
+
+/* Label utama component */
+.download-card label:not(:has(input[type="radio"])) {
+    margin-bottom: 7px !important;
+}
+
+
+/* =========================================================
+   TEXTBOX / DROPDOWN / TEXTAREA
+   ========================================================= */
+
+.download-card input:not([type="radio"]),
+.download-card textarea,
+.download-card select {
+    width: 100% !important;
+
+    height: 44px !important;
+    min-height: 44px !important;
+
+    /* PERBAIKAN: Ubah padding atas dan bawah menjadi 13px agar text berada di tengah */
+    padding: 13px 14px !important; 
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: #0a0d12 !important;
+
+    border: 1px solid #252b35 !important;
+    border-radius: 9px !important;
+
+    box-shadow: none !important;
+
+    color: #cbd3df !important;
+
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+
+    resize: none !important;
+}
+
+
+/* Focus */
+.download-card input:not([type="radio"]):focus,
+.download-card textarea:focus,
+.download-card select:focus {
+    outline: none !important;
+
+    border-color: #3d69bc !important;
+    box-shadow: 0 0 0 1px #3d69bc !important;
+}
+
+
+/* Placeholder */
+.download-card input::placeholder,
+.download-card textarea::placeholder {
+    color: #657183 !important;
+    opacity: 1 !important;
+}
+
+
+/* =========================================================
+   RADIO / FILENAME
+   ========================================================= */
+
+.download-card [data-testid="radio"],
+.download-card [data-testid="radio"] > div,
+.download-card [data-testid="radio"] .form,
+.download-card [data-testid="radio"] fieldset {
+    width: 100% !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    background: transparent !important;
+
+    border: none !important;
+    box-shadow: none !important;
+
+    box-sizing: border-box !important;
+}
+
+
+/* Container pilihan radio */
+.download-card [data-testid="radio"] .wrap,
+.download-card [data-testid="radio"] .wrap:has(input[type="radio"]) {
+    display: flex !important;
+    flex-direction: row !important;
+
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    flex-wrap: nowrap !important;
+
+    width: 100% !important;
+
+    height: 44px !important;
+    min-height: 44px !important;
+
+    gap: 18px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: transparent !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+}
+
+
+/* Radio option */
+.download-card [data-testid="radio"] label:has(input[type="radio"]),
+.download-card label:has(input[type="radio"]) {
+    display: inline-flex !important;
+    flex-direction: row !important;
+
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+
+    height: 44px !important;
+    min-height: 44px !important;
+
+    gap: 8px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: transparent !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+
+    color: #7f8998 !important;
+
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+
+    letter-spacing: .015em !important;
+
+    white-space: nowrap !important;
+
+    cursor: pointer !important;
+
+    transition:
+        color .15s ease,
+        opacity .15s ease !important;
+}
+
+
+/* Hover radio option */
+.download-card label:has(input[type="radio"]):hover {
+    background: transparent !important;
+    color: #d4dbe6 !important;
+}
+
+
+/* Active radio option */
+.download-card label:has(input[type="radio"]:checked) {
+    background: transparent !important;
+
+    border: none !important;
+    box-shadow: none !important;
+
+    color: #e6ebf3 !important;
+}
+
+
+/* =========================================================
+   RADIO CIRCLE
+   ========================================================= */
+
+.download-card input[type="radio"] {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+
+    position: relative !important;
+
+    display: inline-block !important;
+
+    flex: 0 0 14px !important;
+
+    width: 14px !important;
+    height: 14px !important;
+
+    min-width: 14px !important;
+    min-height: 14px !important;
+
+    max-width: 14px !important;
+    max-height: 14px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    box-sizing: border-box !important;
+
+    background: transparent !important;
+
+    border: 2px solid #3b4553 !important;
+    border-radius: 50% !important;
+
+    box-shadow: none !important;
+
+    cursor: pointer !important;
+
+    transition:
+        border-color .15s ease,
+        background .15s ease,
+        box-shadow .15s ease !important;
+}
+
+
+/* Selected */
+.download-card input[type="radio"]:checked {
+    background: #3478f6 !important;
+    border-color: #3478f6 !important;
+
+    box-shadow:
+        inset 0 0 0 3px #0d1117 !important;
+}
+
+
+/* Hover */
+.download-card input[type="radio"]:hover {
+    border-color: #657387 !important;
+}
+
+
+/* Selected + hover */
+.download-card input[type="radio"]:checked:hover {
+    background: #4c8cff !important;
+    border-color: #4c8cff !important;
+}
+
+
+/* Focus */
+.download-card input[type="radio"]:focus,
+.download-card input[type="radio"]:focus-visible {
+    outline: none !important;
+
+    box-shadow:
+        inset 0 0 0 3px #0d1117,
+        0 0 0 2px rgba(52, 120, 246, .18) !important;
+}
+
+
+/* =========================================================
+   DOWNLOAD BUTTON
+   ========================================================= */
 
 .download-button {
+    width: 100% !important;
+
     min-height: 42px !important;
+
+    margin: 2px 0 0 0 !important;
+
     border-radius: 10px !important;
+
     font-size: 12px !important;
     font-weight: 700 !important;
+
+    box-sizing: border-box !important;
 }
 
+
+/* =========================================================
+   LOG TITLE
+   ========================================================= */
+
 .download-log-title {
-    color: #707b8c;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: .14em;
-    margin: 14px 0 10px 0;
+    color: #657183 !important;
+
+    font-size: 10px !important;
+    font-weight: 700 !important;
+
+    letter-spacing: .14em !important;
+
+    margin: 16px 0 10px 12px !important;
 }
+
+
+/* =========================================================
+   LOG CONTAINER
+   ========================================================= */
 
 #download-logs {
     width: 100% !important;
+
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+
     padding: 0 !important;
     margin: 0 0 40px 0 !important;
+
+    overflow: visible !important;
+
     background: transparent !important;
+
     border: none !important;
     border-radius: 0 !important;
+
     box-shadow: none !important;
+
+    box-sizing: border-box !important;
 }
+
 
 #download-logs > div,
 #download-logs .wrap {
     width: 100% !important;
+
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+
     padding: 0 !important;
     margin: 0 !important;
+
+    overflow: visible !important;
+
     background: transparent !important;
+
     border: none !important;
+
     box-shadow: none !important;
+
+    box-sizing: border-box !important;
 }
+
+
+/* =========================================================
+   LOG TEXTAREA
+   ========================================================= */
 
 #download-logs textarea {
     display: block !important;
+
     width: 100% !important;
+
     height: 340px !important;
     min-height: 340px !important;
     max-height: 340px !important;
-    box-sizing: border-box !important;
-    overflow-y: auto !important;
-    overflow-x: auto !important;
-    scrollbar-width: none !important;
-    -ms-overflow-style: none !important;
-    resize: none !important;
+
     padding: 16px 16px 28px 16px !important;
     margin: 0 0 30px 0 !important;
+
+    box-sizing: border-box !important;
+
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+
+    resize: none !important;
+
     background: #0b0e13 !important;
+
     border: 1px solid #202630 !important;
     border-radius: 10px !important;
+
     box-shadow: none !important;
+
     color: #c7d0dc !important;
+
     opacity: 1 !important;
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+
+    font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace !important;
+
     font-size: 11px !important;
     line-height: 1.55 !important;
+
     white-space: pre !important;
 }
 
+
+/* Hide log scrollbar */
 #download-logs textarea::-webkit-scrollbar {
     width: 0 !important;
     height: 0 !important;
+
     display: none !important;
 }

@@ -1,10 +1,480 @@
-.comfy-placeholder {
-    min-height: 360px;
-    display: grid;
-    place-items: center;
-    border: 1px dashed #282f3a;
-    border-radius: 16px;
-    background: #101319;
-    color: #5f6877;
-    font-size: 12px;
+.comfyui-page {
+    gap: 20px !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    padding-bottom: 56px !important;
+}
+
+
+/* =========================
+   CONFIGURATION
+   ========================= */
+
+.comfy-config {
+    background: transparent !important;
+    border: 1px solid #262c36 !important;
+    border-radius: 14px !important;
+    overflow: hidden !important; /* Biarkan hidden agar sudut membulat (border-radius) tetap rapi */
+    box-shadow: none !important;
+    gap: 0 !important;
+    
+    /* Tambahan agar memanjang otomatis mengikuti isi */
+    height: auto !important;
+    min-height: min-content !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Pengganti Header accordion */
+.comfy-config-header {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 52px !important;
+    padding: 0 16px !important;
+    background: #101319 !important;
+    border-bottom: 1px solid #262c36 !important;
+    color: #d8dee8 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    box-sizing: border-box !important;
+}
+
+/* Container untuk isi configuration */
+.comfy-config-body {
+    padding: 18px !important;
+    gap: 16px !important;
+    background: #0d1016 !important; /* Background utama aplikasi */
+    border: none !important;
+    box-shadow: none !important;
+    
+    height: auto !important;
+    min-height: min-content !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Hilangkan background abu-abu bawaan Gradio pada setiap komponen */
+.comfy-config-body > div,
+.comfy-input,
+.comfy-public-url,
+.comfy-provider {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.comfy-input > div,
+.comfy-public-url > div,
+.comfy-provider > div:first-child {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+/* =========================
+   PROVIDER
+   ========================= */
+
+.comfy-provider {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+
+/* Radio container */
+
+.comfy-provider > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+
+/* Choices container */
+
+.comfy-provider .wrap {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+
+    width: 100% !important;
+
+    gap: 0 !important;
+
+    padding: 4px !important;
+
+    background: #090c11 !important;
+
+    border: 1px solid #242a34 !important;
+    border-radius: 11px !important;
+}
+
+
+/* Individual provider */
+
+.comfy-provider label {
+    flex: 1 1 0 !important;
+
+    min-height: 36px !important;
+
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    margin: 0 !important;
+    padding: 0 14px !important;
+
+    border-radius: 8px !important;
+
+    background: transparent !important;
+
+    color: #7f8998 !important;
+
+    cursor: pointer !important;
+
+    font-size: 11px !important;
+    font-weight: 600 !important;
+
+    transition:
+        background .15s ease,
+        color .15s ease !important;
+}
+
+
+/* Hilangkan lingkaran radio */
+
+.comfy-provider input[type="radio"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+
+/* Selected */
+
+.comfy-provider label:has(input:checked) {
+    background: #1b2230 !important;
+    color: #e6ebf3 !important;
+}
+
+
+/* Hover */
+
+.comfy-provider label:hover {
+    background: #151a22 !important;
+    color: #d4dbe6 !important;
+}
+
+
+/* =========================
+   INPUT & PUBLIC URL (Digabung agar seragam)
+   ========================= */
+
+.comfy-input input,
+.comfy-input textarea,
+.comfy-public-url input,
+.comfy-public-url textarea {
+    /* Pastikan tinggi fix */
+    height: 44px !important; 
+    min-height: 44px !important;
+    
+    /* Padding diatur agar teks berada persis di tengah vertikal */
+    padding: 14px 14px !important; 
+    box-sizing: border-box !important;
+    
+    background: #0a0d12 !important;
+    border: 1px solid #252b35 !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+    
+    color: #cbd3df !important;
+    font-size: 12px !important;
+    
+    line-height: 1.2 !important;
+    resize: none !important; /* Cegah user mengubah ukuran box */
+    overflow: hidden !important; /* Hilangkan scrollbar tidak perlu */
+}
+
+.comfy-input input:focus,
+.comfy-input textarea:focus {
+    border-color: #3d69bc !important;
+    box-shadow: 0 0 0 1px #3d69bc !important;
+}
+
+/* Pastikan textbox tampil penuh */
+.comfy-config .comfy-input,
+.comfy-config .comfy-public-url {
+    width: 100% !important;
+}
+
+/* Penekanan visual pada Public URL sebagai Output */
+.comfy-public-url input,
+.comfy-public-url textarea {
+    opacity: 1 !important;
+    color: #b8c2d0 !important;
+    background: #0c1017 !important;
+    border: 1px solid #2a3240 !important;
+    font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace !important;
+    letter-spacing: 0.01em !important;
+}
+
+.comfy-public-url input::placeholder,
+.comfy-public-url textarea::placeholder {
+    color: #5c6675 !important;
+    opacity: 1 !important;
+}
+
+
+/* =========================
+   START BUTTON
+   ========================= */
+
+.comfy-actions {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+
+    margin: 4px 0 0 0 !important;
+}
+
+
+.comfy-start-button {
+    flex: 0 0 180px !important;
+
+    width: 180px !important;
+    min-width: 180px !important;
+
+    min-height: 42px !important;
+
+    border-radius: 10px !important;
+
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+
+/* =========================
+   LOG HEADER
+   ========================= */
+
+.comfy-log-header {
+    display: flex !important;
+    align-items: center !important;
+
+    width: 100% !important;
+
+    gap: 14px !important;
+
+    margin: 12px 0 4px 0 !important;
+}
+
+
+.comfy-log-title {
+    flex: 1;
+
+    color: #657183;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: .14em;
+}
+
+
+/* status + restart */
+
+.comfy-log-controls {
+    flex: 0 0 auto !important;
+
+    display: flex !important;
+    align-items: center !important;
+
+    width: auto !important;
+
+    gap: 12px !important;
+
+    margin: 0 !important;
+}
+
+
+/* =========================
+   STATUS
+   ========================= */
+
+.comfy-status {
+    display: flex;
+    align-items: center;
+
+    gap: 7px;
+
+    color: #7d8796;
+
+    font-size: 11px;
+    font-weight: 600;
+
+    white-space: nowrap;
+}
+
+
+.comfy-status span {
+    width: 7px;
+    height: 7px;
+
+    border-radius: 50%;
+
+    background: #596170;
+}
+
+
+.comfy-status.running {
+    color: #a9b4c3;
+}
+
+
+.comfy-status.running span {
+    background: #69c98f;
+}
+
+
+/* =========================
+   RESTART
+   ========================= */
+
+.comfy-restart-button {
+    flex: 0 0 auto !important;
+
+    width: auto !important;
+    min-width: 82px !important;
+
+    min-height: 32px !important;
+
+    padding: 0 14px !important;
+
+    border: 1px solid #29313c !important;
+    border-radius: 8px !important;
+
+    background: #121720 !important;
+
+    color: #c4ccd8 !important;
+
+    box-shadow: none !important;
+
+    font-size: 11px !important;
+}
+
+
+.comfy-restart-button:hover {
+    background: #19202a !important;
+    border-color: #394454 !important;
+}
+
+
+/* =========================
+   LOGS
+   ========================= */
+
+#comfy-logs {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    padding: 0 !important;
+    margin: 0 0 40px 0 !important;
+
+    background: transparent !important;
+
+    border: none !important;
+    border-radius: 0 !important;
+
+    box-shadow: none !important;
+}
+
+
+#comfy-logs > div,
+#comfy-logs .wrap {
+    width: 100% !important;
+
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    overflow: visible !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    background: transparent !important;
+
+    border: none !important;
+
+    box-shadow: none !important;
+}
+
+
+#comfy-logs textarea {
+    display: block !important;
+
+    width: 100% !important;
+
+    height: 340px !important;
+    min-height: 340px !important;
+    max-height: 340px !important;
+
+    box-sizing: border-box !important;
+
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+
+    resize: none !important;
+
+    padding: 16px 16px 28px 16px !important;
+    margin: 0 0 30px 0 !important;
+
+    background: #0b0e13 !important;
+
+    border: 1px solid #202630 !important;
+    border-radius: 10px !important;
+
+    box-shadow: none !important;
+
+    color: #c7d0dc !important;
+
+    opacity: 1 !important;
+
+    font-family:
+        ui-monospace,
+        SFMono-Regular,
+        Menlo,
+        Monaco,
+        Consolas,
+        monospace !important;
+
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+
+    white-space: pre !important;
+}
+
+
+#comfy-logs textarea::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
 }

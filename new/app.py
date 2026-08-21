@@ -72,23 +72,11 @@ with gr.Blocks() as demo:
         ):
 
             gr.HTML("""
-            <div class="brand">
-
-                <div class="brand-mark">
-                    AI
-                </div>
-
-                <div class="brand-title">
-                    Container Console
-                </div>
-
-                <div class="brand-sub">
-                    Local control panel
-                </div>
-
+            <div class="brand" style="display: flex; justify-content: center; align-items: center; padding: 15px 0;">
+                <img src="https://files.catbox.moe/lfw2hv.jpg" alt="Brand" style="width: 100px; height: 100px; object-fit: cover; border-radius: 16px; display: block; margin: 0 auto;">
             </div>
             """)
-
+            
             btn_dashboard = gr.Button(
                 "▦   Dashboard",
                 elem_classes="nav-btn"
