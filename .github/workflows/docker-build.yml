@@ -1,11 +1,20 @@
 name: Build and Push Docker Image
 
 on:
-  workflow_dispatch:   # hanya bisa dijalankan manual
+  workflow_dispatch:
+    inputs:
+      workdir:
+        description: "Folder project"
+        required: true
+        default: "new"
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ github.event.inputs.workdir }}
 
     steps:
       - name: Checkout repository
@@ -23,11 +32,11 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./${{ github.event.inputs.workdir }}
+          file: ./${{ github.event.inputs.workdir }}/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:vastai
+            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
