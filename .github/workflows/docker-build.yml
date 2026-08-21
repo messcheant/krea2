@@ -7,6 +7,10 @@ on:
         description: "Folder project"
         required: true
         default: "new"
+      version:
+        description: "Versi / Tag Docker (contoh: test, v1.0, latest)"
+        required: true
+        default: "latest"
 
 jobs:
   build-and-push:
@@ -14,7 +18,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: ${{ github.event.inputs.workdir }}
+        working-directory: ${{ inputs.workdir }}
 
     steps:
       - name: Checkout repository
@@ -32,11 +36,11 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
-          context: ./${{ github.event.inputs.workdir }}
-          file: ./${{ github.event.inputs.workdir }}/Dockerfile
+          context: ./${{ inputs.workdir }}
+          file: ./${{ inputs.workdir }}/Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:test
+            ${{ secrets.DOCKERHUB_USERNAME }}/krea2:${{ inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           platforms: linux/amd64
