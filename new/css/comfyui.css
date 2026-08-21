@@ -241,25 +241,35 @@
 
 .comfy-actions {
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     justify-content: center !important;
     align-items: center !important;
-
+    gap: 10px !important;
+    width: 100% !important;
     margin: 4px 0 0 0 !important;
 }
 
+.comfy-actions > * {
+    min-width: 0 !important;
+}
 
-.comfy-start-button {
+.comfy-start-button,
+.comfy-stop-button {
     flex: 0 0 180px !important;
-
     width: 180px !important;
     min-width: 180px !important;
-
+    max-width: 180px !important;
     min-height: 42px !important;
-
     border-radius: 10px !important;
-
     font-size: 12px !important;
     font-weight: 700 !important;
+}
+
+.comfy-start-button:disabled,
+.comfy-stop-button:disabled {
+    opacity: .38 !important;
+    cursor: not-allowed !important;
 }
 
 
@@ -378,6 +388,71 @@
     border-color: #394454 !important;
 }
 
+
+
+
+/* =========================
+   LOG SELECTOR
+   ========================= */
+
+.comfy-log-selector {
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 0 10px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.comfy-log-selector > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.comfy-log-selector .wrap {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    gap: 0 !important;
+    padding: 4px !important;
+    background: #090c11 !important;
+    border: 1px solid #242a34 !important;
+    border-radius: 10px !important;
+}
+
+.comfy-log-selector label {
+    flex: 1 1 0 !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    border-radius: 7px !important;
+    background: transparent !important;
+    color: #7f8998 !important;
+    cursor: pointer !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+}
+
+.comfy-log-selector input[type="radio"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+.comfy-log-selector label:has(input:checked) {
+    background: #1b2230 !important;
+    color: #e6ebf3 !important;
+}
+
+.comfy-log-selector label:hover {
+    background: #151a22 !important;
+    color: #d4dbe6 !important;
+}
 
 /* =========================
    LOGS
