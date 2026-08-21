@@ -1,0 +1,10 @@
+.logs-placeholder {
+    min-height: 360px;
+    display: grid;
+    place-items: center;
+    border: 1px dashed #282f3a;
+    border-radius: 16px;
+    background: #101319;
+    color: #5f6877;
+    font-size: 12px;
+}

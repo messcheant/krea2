@@ -1,0 +1,109 @@
+.download-page {
+    gap: 18px !important;
+    height: auto !important;
+    min-height: 100% !important;
+    overflow: visible !important;
+    padding-bottom: 56px !important;
+}
+
+.download-card {
+    flex: 0 0 auto !important;
+    background: #101319;
+    border: 1px solid #282f3a;
+    border-radius: 16px;
+    padding: 18px !important;
+    gap: 14px !important;
+}
+
+.download-card .download-row {
+    gap: 12px !important;
+}
+
+.download-card label {
+    color: #9aa4b2 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    letter-spacing: .03em;
+}
+
+.download-card input,
+.download-card textarea,
+.download-card .wrap,
+.download-card .secondary-wrap {
+    border-radius: 10px !important;
+}
+
+.download-button {
+    min-height: 42px !important;
+    border-radius: 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+}
+
+.download-log-title {
+    color: #707b8c;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    margin: 14px 0 10px 0;
+}
+
+#download-logs {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 0 40px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+#download-logs > div,
+#download-logs .wrap {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#download-logs textarea {
+    display: block !important;
+    width: 100% !important;
+    height: 340px !important;
+    min-height: 340px !important;
+    max-height: 340px !important;
+    box-sizing: border-box !important;
+    overflow-y: auto !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+    resize: none !important;
+    padding: 16px 16px 28px 16px !important;
+    margin: 0 0 30px 0 !important;
+    background: #0b0e13 !important;
+    border: 1px solid #202630 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+    color: #c7d0dc !important;
+    opacity: 1 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+    white-space: pre !important;
+}
+
+#download-logs textarea::-webkit-scrollbar {
+    width: 0 !important;
+    height: 0 !important;
+    display: none !important;
+}

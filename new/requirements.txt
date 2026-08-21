@@ -1,0 +1,6 @@
+gradio
+huggingface-hub
+psutil
+nvidia-ml-py
+uvicorn[standard]
+fastapi
