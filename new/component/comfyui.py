@@ -190,7 +190,7 @@ def _build_tunnel(provider, token):
     )
 
 
-def _stream_process(process, source, log_queue):
+def _stream_comfy(process, log_queue):
     try:
         for raw_line in iter(
             process.stdout.readline,
@@ -199,24 +199,57 @@ def _stream_process(process, source, log_queue):
             line = raw_line.rstrip()
 
             if line:
-                log_queue.put(
-                    (source, line)
-                )
+                log_queue.put(line)
     finally:
-        log_queue.put(
-            (source, None)
-        )
+        log_queue.put(None)
+
+
+def _stream_tunnel(process, tunnel_state):
+    try:
+        for raw_line in iter(
+            process.stdout.readline,
+            ""
+        ):
+            line = raw_line.rstrip()
+
+            if not line:
+                continue
+
+            url = _extract_public_url(line)
+
+            if url:
+                tunnel_state["public_url"] = url
+    finally:
+        tunnel_state["finished"] = True
+        tunnel_state["return_code"] = process.poll()
 
 
 def _stop_all():
     global comfy_process
     global tunnel_process
 
-    _kill_process(tunnel_process)
-    _kill_process(comfy_process)
+    current_tunnel = tunnel_process
+    current_comfy = comfy_process
 
     tunnel_process = None
     comfy_process = None
+
+    _kill_process(current_tunnel)
+    _kill_process(current_comfy)
+
+
+def _release_processes(current_comfy, current_tunnel):
+    global comfy_process
+    global tunnel_process
+
+    _kill_process(current_tunnel)
+    _kill_process(current_comfy)
+
+    if tunnel_process is current_tunnel:
+        tunnel_process = None
+
+    if comfy_process is current_comfy:
+        comfy_process = None
 
 
 def toggle_comfy(
@@ -262,6 +295,11 @@ def _start_comfy(
 
     logs = []
     log_queue = queue.Queue()
+    tunnel_state = {
+        "public_url": "",
+        "finished": False,
+        "return_code": None
+    }
 
     provider = provider or "Platform Proxy"
     start_command = (start_command or "").strip()
@@ -354,11 +392,13 @@ def _start_comfy(
 
         return
 
+    current_comfy = comfy_process
+    current_tunnel = None
+
     threading.Thread(
-        target=_stream_process,
+        target=_stream_comfy,
         args=(
-            comfy_process,
-            "COMFY",
+            current_comfy,
             log_queue
         ),
         daemon=True
@@ -435,22 +475,36 @@ def _start_comfy(
 
             return
 
+        current_tunnel = tunnel_process
+
         threading.Thread(
-            target=_stream_process,
+            target=_stream_tunnel,
             args=(
-                tunnel_process,
-                "TUNNEL",
-                log_queue
+                current_tunnel,
+                tunnel_state
             ),
             daemon=True
         ).start()
 
-    while (
-        comfy_process is not None
-        and comfy_process.poll() is None
-    ):
+    while current_comfy.poll() is None:
+        tunnel_url = tunnel_state.get("public_url", "")
+
+        if tunnel_url and tunnel_url != public_url:
+            public_url = tunnel_url
+
+            yield (
+                "\n".join(logs),
+                public_url,
+                _status_html(True),
+                gr.update(
+                    value="Stop",
+                    variant="stop",
+                    interactive=True
+                )
+            )
+
         try:
-            source, line = log_queue.get(
+            line = log_queue.get(
                 timeout=0.25
             )
 
@@ -460,15 +514,8 @@ def _start_comfy(
         if line is None:
             continue
 
-        url = _extract_public_url(line)
-
-        if url:
-            public_url = url
-
         yield (
-            emit(
-                f"[{source}] {line}"
-            ),
+            emit(line),
             public_url,
             _status_html(True),
             gr.update(
@@ -478,13 +525,12 @@ def _start_comfy(
             )
         )
 
-    return_code = (
-        comfy_process.poll()
-        if comfy_process
-        else None
-    )
+    return_code = current_comfy.poll()
 
-    _stop_all()
+    _release_processes(
+        current_comfy,
+        current_tunnel
+    )
 
     yield (
         emit(
@@ -634,6 +680,7 @@ def create_comfyui(visible=False):
                 status,
                 start_button
             ],
+            concurrency_limit=None,
             js="""(...args) => {
                 const setupLogScroll = () => {
                     const textarea =
@@ -700,7 +747,8 @@ def create_comfyui(visible=False):
                 public_url,
                 status,
                 start_button
-            ]
+            ],
+            concurrency_limit=None
         )
 
     return page
