@@ -8,6 +8,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     FILE_ROOT=/workspace \
     PIP_NO_CACHE_DIR=1
 
+ARG ZROK_VERSION=2.0.4
+
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         git \
@@ -21,20 +23,19 @@ RUN apt-get update \
     && grep -vE '^(torch|torchvision|torchaudio)([<>=!~ ].*)?$' \
         /workspace/ComfyUI/requirements.txt > /tmp/comfy-requirements.txt \
     && pip install --no-cache-dir -r /tmp/comfy-requirements.txt \
-    && curl -L \
+    && curl -fsSL \
         https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 \
         -o /usr/local/bin/cloudflared \
     && chmod +x /usr/local/bin/cloudflared \
-    && curl -L \
+    && curl -fsSL \
         https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.tgz \
         -o /tmp/ngrok.tgz \
     && tar -xzf /tmp/ngrok.tgz -C /usr/local/bin \
     && chmod +x /usr/local/bin/ngrok \
-    && curl -L \
-        https://github.com/openziti/zrok/releases/latest/download/zrok_2_linux_amd64.tar.gz \
+    && curl -fsSL \
+        https://github.com/openziti/zrok/releases/download/v${ZROK_VERSION}/zrok_${ZROK_VERSION}_linux_amd64.tar.gz \
         -o /tmp/zrok.tar.gz \
-    && tar -xzf /tmp/zrok.tar.gz -C /tmp \
-    && mv /tmp/zrok2 /usr/local/bin/zrok2 \
+    && tar -xzf /tmp/zrok.tar.gz -C /usr/local/bin \
     && chmod +x /usr/local/bin/zrok2 \
     && rm -rf \
         /workspace/ComfyUI/.git \
