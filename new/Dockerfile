@@ -48,13 +48,15 @@ RUN apt-get update \
 WORKDIR /app
 
 COPY requirements.txt .
-
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY app.py .
 COPY component ./component
 COPY css ./css
+COPY start.sh .
+
+RUN chmod +x /app/start.sh
 
 EXPOSE 7860 8188
 
-ENTRYPOINT ["python", "/app/app.py"]
+ENTRYPOINT ["/app/start.sh"]
