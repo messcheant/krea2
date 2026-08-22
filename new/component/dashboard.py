@@ -9,7 +9,6 @@ import subprocess
 import sys
 import tempfile
 from functools import partial
-from pathlib import Path
 
 import gradio as gr
 import psutil
@@ -36,10 +35,6 @@ SAGE_MATRIX = {
 
 COMFY_KITCHEN_VERSION = "0.2.28"
 XFORMERS_VERSION = "0.0.35"
-ONNX_CUDA12_VERSION = "1.26.0"
-ONNX_CUDA13_VERSION = "1.28.0"
-OPENCV_VERSION = "4.12.0.88"
-INSIGHTFACE_VERSION = "0.7.3"
 
 GPU_ARCHITECTURES = {
     "70": "Volta",
@@ -103,12 +98,6 @@ CORE_CONSTRAINT_PACKAGES = (
     "opencv-contrib-python",
 )
 
-OPENCV_DISTRIBUTIONS = (
-    "opencv-python-headless",
-    "opencv-contrib-python-headless",
-    "opencv-python",
-    "opencv-contrib-python",
-)
 
 GPU_HANDLE = None
 GPU_NAME = "No NVIDIA GPU"
@@ -343,48 +332,6 @@ def get_active_attention():
     return "PyTorch SDPA"
 
 
-#get_ffmpeg_version
-def get_ffmpeg_version():
-    path = shutil.which("ffmpeg")
-    if not path:
-        return None
-
-    try:
-        result = subprocess.run(
-            [path, "-version"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            timeout=5,
-        )
-        first_line = (result.stdout or "").splitlines()[0]
-        match = re.search(r"ffmpeg version\s+([^\s]+)", first_line, re.IGNORECASE)
-        return match.group(1) if match else "Installed"
-    except Exception:
-        return "Installed"
-
-
-#get_opencv_version
-def get_opencv_version():
-    return get_distribution_version(*OPENCV_DISTRIBUTIONS)
-
-
-#get_onnx_provider
-def get_onnx_provider():
-    if not get_distribution_version("onnxruntime-gpu", "onnxruntime"):
-        return None
-
-    try:
-        import onnxruntime as ort
-        providers = ort.get_available_providers()
-        if "CUDAExecutionProvider" in providers:
-            return "CUDAExecutionProvider"
-        if providers:
-            return providers[0]
-    except Exception:
-        pass
-    return None
-
 
 #snapshot_core_versions
 def snapshot_core_versions():
@@ -601,68 +548,6 @@ def attention_tool_info(tool_key):
     return tool_info(tool_key, compatible=False)
 
 
-#optional_tool_info
-def optional_tool_info(tool_key):
-    if tool_key == "onnx":
-        gpu_version = get_distribution_version("onnxruntime-gpu")
-        cpu_version = get_distribution_version("onnxruntime")
-
-        if gpu_version:
-            provider = get_onnx_provider()
-            detail = provider if provider else "GPU package installed"
-            return tool_info("ONNX Runtime GPU", installed=gpu_version, detail=detail)
-
-        if cpu_version:
-            return tool_info(
-                "ONNX Runtime GPU",
-                compatible=False,
-                detail=f"CPU runtime {cpu_version} detected",
-            )
-
-        compatible = (
-            platform.system() == "Linux"
-            and platform.machine() in {"x86_64", "AMD64"}
-            and cuda_major() in {12, 13}
-            and sys.version_info >= (3, 11)
-        )
-        return tool_info("ONNX Runtime GPU", compatible=compatible)
-
-    if tool_key == "ffmpeg":
-        installed = get_ffmpeg_version()
-        if installed:
-            return tool_info("FFmpeg", installed=installed)
-
-        compatible = platform.system() == "Linux" and shutil.which("apt-get") is not None
-        return tool_info("FFmpeg", compatible=compatible)
-
-    if tool_key == "opencv":
-        installed = get_opencv_version()
-        if installed:
-            return tool_info("OpenCV", installed=installed)
-
-        return tool_info("OpenCV", compatible=sys.version_info >= (3, 8))
-
-    if tool_key == "pyav":
-        installed = get_distribution_version("av")
-        if installed:
-            return tool_info("Video Tools", installed=installed)
-
-        return tool_info("Video Tools", compatible=sys.version_info >= (3, 10))
-
-    if tool_key == "insightface":
-        installed = get_distribution_version("insightface")
-        if installed:
-            return tool_info("InsightFace", installed=installed)
-
-        onnx_gpu = get_distribution_version("onnxruntime-gpu")
-        opencv = get_opencv_version()
-        compiler = shutil.which("g++") or shutil.which("c++") or shutil.which("gcc")
-        compatible = bool(onnx_gpu and opencv and compiler and sys.version_info >= (3, 10))
-        detail = None if compatible else "Requires ONNX GPU, OpenCV and compiler"
-        return tool_info("InsightFace", compatible=compatible, detail=detail)
-
-    return tool_info(tool_key, compatible=False)
-
 
 #tool_info
 def tool_info(name, installed=None, compatible=True, installable=True, detail=None):
@@ -715,11 +600,6 @@ def tool_status_html(info):
     </div>
     """
 
-
-#log_html
-def log_html(text):
-    escaped = html.escape(text or "Ready. Select an optional component to install.")
-    return f'<pre class="install-log-text">{escaped}</pre>'
 
 
 #install_sage
@@ -803,84 +683,6 @@ def install_xformers():
     )
 
 
-#install_onnx_runtime
-def install_onnx_runtime():
-    major = cuda_major()
-    if major == 12:
-        version = ONNX_CUDA12_VERSION
-    elif major == 13:
-        version = ONNX_CUDA13_VERSION
-    else:
-        return 1, "ONNX Runtime GPU installer supports CUDA 12.x or 13.x only."
-
-    if get_distribution_version("onnxruntime") and not get_distribution_version("onnxruntime-gpu"):
-        return 1, "CPU onnxruntime is installed. Remove it first to avoid conflicting runtimes."
-
-    return run_pip_install([f"onnxruntime-gpu=={version}"], timeout=900)
-
-
-#install_ffmpeg
-def install_ffmpeg():
-    apt = shutil.which("apt-get")
-    if not apt:
-        return 1, "apt-get is not available in this container."
-
-    update_code, update_output = run_command([apt, "update"], timeout=600)
-    if update_code != 0:
-        return update_code, update_output
-
-    install_code, install_output = run_command(
-        [apt, "install", "-y", "--no-install-recommends", "ffmpeg"],
-        timeout=900,
-    )
-    return install_code, update_output + "\n" + install_output
-
-
-#install_opencv
-def install_opencv():
-    existing = get_opencv_version()
-    if existing:
-        return 0, f"OpenCV is already installed: {existing}"
-
-    return run_pip_install(
-        [f"opencv-python-headless=={OPENCV_VERSION}"],
-        timeout=600,
-    )
-
-
-#install_pyav
-def install_pyav():
-    return run_pip_install(["av>=16.0.0"], timeout=600)
-
-
-#install_insightface
-def install_insightface():
-    info = optional_tool_info("insightface")
-    if not info["interactive"]:
-        return 1, info.get("detail") or "InsightFace prerequisites are not ready."
-
-    safe_dependencies = [
-        "onnx",
-        "tqdm",
-        "requests",
-        "scikit-image",
-        "easydict",
-        "cython",
-        "albumentations",
-        "prettytable",
-    ]
-
-    deps_code, deps_output = run_pip_install(safe_dependencies, timeout=900)
-    if deps_code != 0:
-        return deps_code, deps_output
-
-    install_code, install_output = run_pip_install(
-        [f"insightface=={INSIGHTFACE_VERSION}"],
-        extra_args=["--no-deps"],
-        timeout=1800,
-    )
-    return install_code, deps_output + "\n" + install_output
-
 
 #install_tool
 def install_tool(tool_key):
@@ -889,11 +691,7 @@ def install_tool(tool_key):
         "comfy_kitchen": install_comfy_kitchen,
         "flash": install_flash_attention,
         "xformers": install_xformers,
-        "onnx": install_onnx_runtime,
-        "ffmpeg": install_ffmpeg,
-        "opencv": install_opencv,
-        "pyav": install_pyav,
-        "insightface": install_insightface,
+
     }
 
     installer = installers.get(tool_key)
@@ -923,24 +721,7 @@ def verify_tool(tool_key):
             import xformers.ops
             return bool(xformers)
 
-        if tool_key == "onnx":
-            import onnxruntime as ort
-            return "CUDAExecutionProvider" in ort.get_available_providers()
 
-        if tool_key == "ffmpeg":
-            return get_ffmpeg_version() is not None
-
-        if tool_key == "opencv":
-            import cv2
-            return bool(cv2.__version__)
-
-        if tool_key == "pyav":
-            import av
-            return bool(av.__version__)
-
-        if tool_key == "insightface":
-            import insightface
-            return bool(insightface)
     except Exception:
         return False
 
@@ -949,9 +730,7 @@ def verify_tool(tool_key):
 
 #get_tool_info
 def get_tool_info(tool_key):
-    if tool_key in {"sage", "comfy_kitchen", "flash", "xformers", "triton"}:
-        return attention_tool_info(tool_key)
-    return optional_tool_info(tool_key)
+    return attention_tool_info(tool_key)
 
 
 #perform_install
@@ -968,28 +747,19 @@ def perform_install(tool_key):
     yield (
         tool_status_html(installing),
         gr.update(value="Installing...", interactive=False),
-        log_html(f"Installing {initial['name']}..."),
     )
 
-    code, output = install_tool(tool_key)
+    code, _output = install_tool(tool_key)
     verified = code == 0 and verify_tool(tool_key)
 
-    check_code, check_output = pip_check()
-    full_output = output
-    if check_output:
-        full_output += f"\n\n[pip check]\n{check_output}"
+    # Keep the dependency integrity check even though its text output is no longer shown.
+    pip_check()
 
     if code == 0 and verified:
         refreshed = get_tool_info(tool_key)
-        if check_code != 0:
-            full_output += "\n\nInstalled and verified, but pip check reports dependency warnings."
-        else:
-            full_output += "\n\nInstallation verified successfully."
-
         yield (
             tool_status_html(refreshed),
             gr.update(value="Installed", interactive=False),
-            log_html(full_output),
         )
         return
 
@@ -1001,31 +771,11 @@ def perform_install(tool_key):
         interactive=True,
     )
 
-    if code == 0 and not verified:
-        full_output += "\n\nPackage installation completed, but runtime verification failed."
-
     yield (
         tool_status_html(failed),
         gr.update(value="Retry", interactive=True),
-        log_html(full_output),
     )
 
-
-#get_storage_info
-def get_storage_info(file_root):
-    root = Path(file_root or "/workspace")
-    if not root.exists():
-        root = Path("/")
-
-    try:
-        usage = shutil.disk_usage(root)
-        total = usage.total / (1024 ** 3)
-        used = usage.used / (1024 ** 3)
-        free = usage.free / (1024 ** 3)
-        percent = (usage.used / usage.total * 100) if usage.total else 0
-        return str(root), used, total, free, percent
-    except Exception:
-        return str(root), 0, 0, 0, 0
 
 
 #get_dashboard_html
@@ -1051,7 +801,6 @@ def get_dashboard_html(file_root):
         except Exception:
             pass
 
-    storage_path, storage_used, storage_total, storage_free, storage_percent = get_storage_info(file_root)
     torch_display = getattr(torch, "__version__", "Unavailable") if torch else "Unavailable"
     cuda_display = cuda_version() or "Unavailable"
 
@@ -1107,25 +856,12 @@ def get_dashboard_html(file_root):
         <div class="runtime-item"><span>GPU Compute</span><strong>{html.escape(get_gpu_compute_info())}</strong></div>
     </section>
 
-    <div class="section-label section-gap">STORAGE</div>
-    <section class="storage-panel">
-        <div class="storage-head">
-            <span>Workspace</span>
-            <strong>{storage_used:.1f} / {storage_total:.1f} GB</strong>
-        </div>
-        <div class="bar storage-bar"><div style="width:{min(storage_percent, 100):.1f}%"></div></div>
-        <div class="storage-foot">
-            <span>{html.escape(storage_path)}</span>
-            <span>{storage_free:.1f} GB free</span>
-        </div>
-    </section>
     """
 
 
 #section_title_html
-def section_title_html(title, subtitle=None):
-    subtitle_html = f'<div class="section-subtitle">{html.escape(subtitle)}</div>' if subtitle else ""
-    return f'<div class="section-title-block"><div class="section-label">{html.escape(title)}</div>{subtitle_html}</div>'
+def section_title_html(title):
+    return f'<div class="section-title-block"><div class="section-label">{html.escape(title)}</div></div>'
 
 
 #active_attention_html
@@ -1151,26 +887,14 @@ def create_tool_row(tool_key):
     return tool_key, status, button
 
 
-#create_optional_card
-def create_optional_card(tool_key):
-    info = get_tool_info(tool_key)
-    with gr.Column(elem_classes=["optional-card"]):
-        status = gr.HTML(tool_status_html(info), elem_classes=["optional-status-wrap"])
-        button = gr.Button(
-            info["button"],
-            interactive=info["interactive"],
-            elem_classes=["optional-button"],
-        )
-    return tool_key, status, button
-
 
 #bind_installer
-def bind_installer(binding, log_output):
+def bind_installer(binding):
     tool_key, status, button = binding
     button.click(
         fn=partial(perform_install, tool_key),
         inputs=[],
-        outputs=[status, button, log_output],
+        outputs=[status, button],
         show_progress="hidden",
     )
 
@@ -1198,19 +922,8 @@ def create_dashboard(file_root, visible=True):
             bindings.append(create_tool_row("xformers"))
             bindings.append(create_tool_row("triton"))
 
-        gr.HTML(section_title_html("OPTIONAL TOOLS", "Install only what your workflow needs."))
-        with gr.Row(elem_classes=["optional-grid"]):
-            bindings.append(create_optional_card("onnx"))
-            bindings.append(create_optional_card("ffmpeg"))
-            bindings.append(create_optional_card("opencv"))
-            bindings.append(create_optional_card("pyav"))
-            bindings.append(create_optional_card("insightface"))
-
-        gr.HTML(section_title_html("INSTALL LOG"))
-        log_output = gr.HTML(log_html("Ready. Select an optional component to install."))
-
         for binding in bindings:
-            bind_installer(binding, log_output)
+            bind_installer(binding)
 
         timer = gr.Timer(value=1.0, active=True)
         timer.tick(
