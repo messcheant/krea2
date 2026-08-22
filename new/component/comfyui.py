@@ -1,10 +1,10 @@
 import os
 import re
-import queue
 import shutil
 import signal
 import subprocess
 import threading
+from collections import deque
 
 import gradio as gr
 
@@ -15,9 +15,16 @@ comfy_process = None
 tunnel_process = None
 
 log_lock = threading.Lock()
-tunnel_logs = ["Ready."]
-comfy_logs = ["Ready."]
-active_log_view = "Logs B - ComfyUI"
+LOG_LIMIT = 2000
+ANSI_ESCAPE = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
+
+tunnel_logs = deque(["Ready."], maxlen=LOG_LIMIT)
+comfy_logs = deque(["Ready."], maxlen=LOG_LIMIT)
+active_log_view = "ComfyUI"
+state_lock = threading.Lock()
+app_state = "stopped"
+current_public_url = ""
+session_id = 0
 
 
 def _toggle_token(provider):
@@ -43,21 +50,57 @@ def _toggle_token(provider):
     )
 
 
-def _status_html(running):
-    if running:
-        return """
-        <div class="comfy-status running">
-            <span></span>
-            Running
-        </div>
-        """
+def _status_html(state):
+    labels = {
+        "stopped": ("stopped", "Stopped"),
+        "starting": ("starting", "Starting"),
+        "running": ("running", "Running"),
+        "shutting_down": ("shutting-down", "Shutting Down"),
+        "restarting": ("restarting", "Restarting"),
+        "error": ("error", "Error"),
+    }
 
-    return """
-    <div class="comfy-status stopped">
+    css_class, label = labels.get(state, labels["stopped"])
+
+    return f"""
+    <div class="comfy-status {css_class}">
         <span></span>
-        Stopped
+        {label}
     </div>
     """
+
+
+def _set_state(state):
+    global app_state
+    with state_lock:
+        app_state = state
+
+
+def _get_state():
+    with state_lock:
+        return app_state
+
+
+def _button_updates(state):
+    if state == "stopped" or state == "error":
+        return (
+            gr.update(interactive=True, variant="primary"),
+            gr.update(interactive=False, variant="stop"),
+            gr.update(interactive=False)
+        )
+
+    if state == "running":
+        return (
+            gr.update(interactive=False, variant="primary"),
+            gr.update(interactive=True, variant="stop"),
+            gr.update(interactive=True)
+        )
+
+    return (
+        gr.update(interactive=False, variant="primary"),
+        gr.update(interactive=False, variant="stop"),
+        gr.update(interactive=False)
+    )
 
 
 def _kill_process(process):
@@ -200,22 +243,32 @@ def _reset_logs(provider):
     global comfy_logs
 
     with log_lock:
-        tunnel_logs = []
-        comfy_logs = []
+        tunnel_logs = deque(maxlen=LOG_LIMIT)
+        comfy_logs = deque(maxlen=LOG_LIMIT)
 
         if provider == "Platform Proxy":
             tunnel_logs.append("[INFO] Platform Proxy selected - tunnel process disabled")
 
 
+def _clean_log_line(message):
+    if message is None:
+        return ""
+    return ANSI_ESCAPE.sub("", str(message)).replace("\r", "").rstrip()
+
+
 def _append_log(source, message):
+    line = _clean_log_line(message)
+    if not line:
+        return
+
     with log_lock:
         target = tunnel_logs if source == "tunnel" else comfy_logs
-        target.append(message)
+        target.append(line)
 
 
 def _get_log_text(view):
     with log_lock:
-        if view == "Logs A - Tunnel":
+        if view == "Tunnel":
             return "\n".join(tunnel_logs) or "Waiting for tunnel logs..."
 
         return "\n".join(comfy_logs) or "Waiting for ComfyUI logs..."
@@ -223,166 +276,175 @@ def _get_log_text(view):
 
 def select_log(view):
     global active_log_view
-    active_log_view = view or "Logs B - ComfyUI"
+    active_log_view = view or "ComfyUI"
     return _get_log_text(active_log_view)
 
 
-def _stream_comfy(process, log_queue):
+def _is_alive(process):
+    return process is not None and process.poll() is None
+
+
+def _invalidate_session():
+    global session_id
+    session_id += 1
+    return session_id
+
+
+def _kill_process(process):
+    if not process:
+        return
+
     try:
-        for raw_line in iter(process.stdout.readline, ""):
-            line = raw_line.rstrip()
-            if line:
-                log_queue.put(("comfy", line))
-    finally:
-        log_queue.put(("comfy", None))
+        if process.poll() is not None:
+            return
 
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        except ProcessLookupError:
+            return
 
-def _stream_tunnel(process, tunnel_state, log_queue):
-    try:
-        for raw_line in iter(process.stdout.readline, ""):
-            line = raw_line.rstrip()
-            if not line:
-                continue
+        try:
+            process.wait(timeout=3)
+            return
+        except subprocess.TimeoutExpired:
+            pass
 
-            log_queue.put(("tunnel", line))
+        try:
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+        except ProcessLookupError:
+            return
 
-            url = _extract_public_url(line)
-            if url:
-                tunnel_state["public_url"] = url
-    finally:
-        tunnel_state["finished"] = True
-        tunnel_state["return_code"] = process.poll()
-        log_queue.put(("tunnel", None))
+        try:
+            process.wait(timeout=2)
+        except subprocess.TimeoutExpired:
+            pass
+    except Exception:
+        pass
 
 
 def _stop_all():
     global comfy_process
     global tunnel_process
+    global current_public_url
+
+    _invalidate_session()
 
     current_tunnel = tunnel_process
     current_comfy = comfy_process
 
     tunnel_process = None
     comfy_process = None
+    current_public_url = ""
 
     _kill_process(current_tunnel)
     _kill_process(current_comfy)
 
 
-def _release_processes(current_comfy, current_tunnel):
+def _stream_comfy(process, this_session):
     global comfy_process
     global tunnel_process
 
-    _kill_process(current_tunnel)
-    _kill_process(current_comfy)
+    try:
+        for raw_line in iter(process.stdout.readline, ""):
+            line = raw_line.rstrip()
+            if line:
+                _append_log("comfy", line)
+    finally:
+        return_code = process.poll()
 
-    if tunnel_process is current_tunnel:
-        tunnel_process = None
+        if this_session != session_id:
+            return
 
-    if comfy_process is current_comfy:
-        comfy_process = None
+        if comfy_process is process:
+            comfy_process = None
 
+            current_tunnel = tunnel_process
+            tunnel_process = None
+            _kill_process(current_tunnel)
 
-def stop_comfy(log_view):
-    was_running = (
-        comfy_process is not None
-        and comfy_process.poll() is None
-    )
+            _append_log(
+                "comfy",
+                f"[INFO] ComfyUI exited with code {return_code}"
+            )
 
-    had_tunnel = (
-        tunnel_process is not None
-        and tunnel_process.poll() is None
-    )
-
-    _stop_all()
-
-    if was_running:
-        _append_log("comfy", "[INFO] ComfyUI stopped")
-
-    if had_tunnel:
-        _append_log("tunnel", "[INFO] Tunnel stopped")
-
-    return (
-        _get_log_text(log_view),
-        "",
-        _status_html(False),
-        gr.update(interactive=True, variant="primary"),
-        gr.update(interactive=False, variant="stop")
-    )
+            state = _get_state()
+            if state not in ("shutting_down", "restarting"):
+                _set_state("stopped")
 
 
-def _start_comfy(
-    provider,
-    token,
-    start_command,
-    log_view
-):
+def _stream_tunnel(process, this_session):
+    global tunnel_process
+    global current_public_url
+
+    try:
+        for raw_line in iter(process.stdout.readline, ""):
+            line = raw_line.rstrip()
+            if not line:
+                continue
+
+            _append_log("tunnel", line)
+
+            url = _extract_public_url(line)
+            if url and this_session == session_id:
+                current_public_url = url
+    finally:
+        if this_session != session_id:
+            return
+
+        if tunnel_process is process:
+            tunnel_process = None
+
+        return_code = process.poll()
+        if _get_state() == "running":
+            _append_log(
+                "tunnel",
+                f"[INFO] Tunnel exited with code {return_code}"
+            )
+
+
+def _recover_stale_state():
+    state = _get_state()
+
+    if state == "running" and not _is_alive(comfy_process):
+        _set_state("stopped")
+        return "stopped"
+
+    if state in ("starting", "shutting_down", "restarting"):
+        if not _is_alive(comfy_process) and not _is_alive(tunnel_process):
+            _set_state("stopped")
+            return "stopped"
+
+    return state
+
+
+def _spawn_session(provider, token, start_command):
     global comfy_process
     global tunnel_process
-
-    if (
-        comfy_process is not None
-        and comfy_process.poll() is None
-    ):
-        yield (
-            _get_log_text(log_view),
-            "",
-            _status_html(True),
-            gr.update(interactive=False, variant="primary"),
-            gr.update(interactive=True, variant="stop")
-        )
-        return
+    global current_public_url
 
     provider = provider or "Platform Proxy"
     start_command = (start_command or "").strip()
-    log_view = log_view or "Logs B - ComfyUI"
-    public_url = ""
-
-    _reset_logs(provider)
-    log_queue = queue.Queue()
-    tunnel_state = {
-        "public_url": "",
-        "finished": False,
-        "return_code": None
-    }
 
     if not start_command:
         _append_log("comfy", "[ERROR] Start command is required")
-        yield (
-            _get_log_text(log_view),
-            "",
-            _status_html(False),
-            gr.update(interactive=True, variant="primary"),
-            gr.update(interactive=False, variant="stop")
-        )
-        return
+        _set_state("error")
+        return False
 
     try:
         tunnel_cmd = _build_tunnel(provider, token)
     except Exception as error:
         _append_log("tunnel", f"[ERROR] {error}")
-        yield (
-            _get_log_text(log_view),
-            "",
-            _status_html(False),
-            gr.update(interactive=True, variant="primary"),
-            gr.update(interactive=False, variant="stop")
-        )
-        return
+        _set_state("error")
+        return False
+
+    this_session = _invalidate_session()
+    current_public_url = ""
 
     _append_log("comfy", "[INFO] Starting ComfyUI")
     _append_log("comfy", f"[CMD] {start_command}")
 
-    yield (
-        _get_log_text(log_view),
-        "",
-        _status_html(False),
-        gr.update(interactive=False, variant="primary"),
-        gr.update(interactive=False, variant="stop")
-    )
-
     try:
-        comfy_process = subprocess.Popen(
+        process = subprocess.Popen(
             start_command,
             cwd=COMFY_DIR,
             shell=True,
@@ -395,32 +457,28 @@ def _start_comfy(
     except Exception as error:
         comfy_process = None
         _append_log("comfy", f"[ERROR] Failed to start ComfyUI: {error}")
-        yield (
-            _get_log_text(log_view),
-            "",
-            _status_html(False),
-            gr.update(interactive=True, variant="primary"),
-            gr.update(interactive=False, variant="stop")
-        )
-        return
+        _set_state("error")
+        return False
 
-    current_comfy = comfy_process
-    current_tunnel = None
+    comfy_process = process
 
     threading.Thread(
         target=_stream_comfy,
-        args=(current_comfy, log_queue),
+        args=(process, this_session),
         daemon=True
     ).start()
 
     if provider == "Platform Proxy":
-        public_url = _runpod_url()
-        _append_log("comfy", "[INFO] ComfyUI listening on port 8188")
+        current_public_url = _runpod_url()
+        _append_log(
+            "tunnel",
+            "[INFO] Platform Proxy selected - tunnel process disabled"
+        )
     else:
         _append_log("tunnel", f"[INFO] Starting {provider}")
 
         try:
-            tunnel_process = subprocess.Popen(
+            tunnel = subprocess.Popen(
                 tunnel_cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
@@ -430,100 +488,143 @@ def _start_comfy(
             )
         except Exception as error:
             _append_log("tunnel", f"[ERROR] Failed to start tunnel: {error}")
-            _stop_all()
-            yield (
-                _get_log_text(log_view),
-                "",
-                _status_html(False),
-                gr.update(interactive=True, variant="primary"),
-                gr.update(interactive=False, variant="stop")
-            )
-            return
+            comfy_process = None
+            _kill_process(process)
+            _set_state("error")
+            return False
 
-        current_tunnel = tunnel_process
+        tunnel_process = tunnel
 
         threading.Thread(
             target=_stream_tunnel,
-            args=(current_tunnel, tunnel_state, log_queue),
+            args=(tunnel, this_session),
             daemon=True
         ).start()
 
-    yield (
-        _get_log_text(log_view),
-        public_url,
-        _status_html(True),
-        gr.update(interactive=False, variant="primary"),
-        gr.update(interactive=True, variant="stop")
+    _set_state("running")
+    return True
+
+
+def _ui_snapshot(log_view):
+    state = _recover_stale_state()
+    start_update, stop_update, restart_update = _button_updates(state)
+
+    return (
+        _get_log_text(log_view or active_log_view),
+        current_public_url,
+        _status_html(state),
+        start_update,
+        stop_update,
+        restart_update
     )
 
-    while current_comfy.poll() is None:
-        if comfy_process is not current_comfy:
-            return
 
-        tunnel_url = tunnel_state.get("public_url", "")
-        url_changed = bool(tunnel_url and tunnel_url != public_url)
+def refresh_comfy_ui(log_view):
+    return _ui_snapshot(log_view)
 
-        if url_changed:
-            public_url = tunnel_url
 
-        try:
-            source, line = log_queue.get(timeout=0.25)
-        except queue.Empty:
-            if url_changed:
-                yield (
-                    _get_log_text(active_log_view),
-                    public_url,
-                    _status_html(True),
-                    gr.update(interactive=False, variant="primary"),
-                    gr.update(interactive=True, variant="stop")
-                )
-            continue
+def start_comfy(provider, token, start_command, log_view):
+    state = _recover_stale_state()
 
-        if line is not None:
-            _append_log(source, line)
-
-        yield (
-            _get_log_text(active_log_view),
-            public_url,
-            _status_html(True),
-            gr.update(interactive=False, variant="primary"),
-            gr.update(interactive=True, variant="stop")
-        )
-
-    if comfy_process is not current_comfy:
+    if _is_alive(comfy_process):
+        _set_state("running")
+        yield _ui_snapshot(log_view)
         return
 
-    return_code = current_comfy.poll()
-    _append_log("comfy", f"[INFO] ComfyUI exited with code {return_code}")
+    if state in ("starting", "shutting_down", "restarting"):
+        yield _ui_snapshot(log_view)
+        return
 
-    if current_tunnel is not None:
-        _append_log("tunnel", "[INFO] Tunnel stopped because ComfyUI exited")
+    provider = provider or "Platform Proxy"
+    _reset_logs(provider)
+    _set_state("starting")
 
-    _release_processes(current_comfy, current_tunnel)
-
+    start_update, stop_update, restart_update = _button_updates("starting")
     yield (
-        _get_log_text(active_log_view),
-        public_url,
-        _status_html(False),
-        gr.update(interactive=True, variant="primary"),
-        gr.update(interactive=False, variant="stop")
+        _get_log_text(log_view),
+        "",
+        _status_html("starting"),
+        start_update,
+        stop_update,
+        restart_update
     )
 
+    _spawn_session(provider, token, start_command)
+    yield _ui_snapshot(log_view)
 
-def restart_comfy(
-    provider,
-    token,
-    start_command,
-    log_view
-):
+
+def stop_comfy(log_view):
+    state = _recover_stale_state()
+
+    if state in ("starting", "shutting_down", "restarting"):
+        yield _ui_snapshot(log_view)
+        return
+
+    was_running = _is_alive(comfy_process)
+    had_tunnel = _is_alive(tunnel_process)
+
+    if not was_running and not had_tunnel:
+        _set_state("stopped")
+        yield _ui_snapshot(log_view)
+        return
+
+    _set_state("shutting_down")
+    _append_log("comfy", "[INFO] Shutting down ComfyUI...")
+    if had_tunnel:
+        _append_log("tunnel", "[INFO] Shutting down tunnel...")
+
+    start_update, stop_update, restart_update = _button_updates("shutting_down")
+    yield (
+        _get_log_text(log_view),
+        current_public_url,
+        _status_html("shutting_down"),
+        start_update,
+        stop_update,
+        restart_update
+    )
+
     _stop_all()
 
-    yield from _start_comfy(
-        provider,
-        token,
-        start_command,
-        log_view
+    if was_running:
+        _append_log("comfy", "[INFO] ComfyUI stopped")
+    if had_tunnel:
+        _append_log("tunnel", "[INFO] Tunnel stopped")
+
+    _set_state("stopped")
+    yield _ui_snapshot(log_view)
+
+
+def restart_comfy(provider, token, start_command, log_view):
+    state = _recover_stale_state()
+
+    if state in ("starting", "shutting_down", "restarting"):
+        yield _ui_snapshot(log_view)
+        return
+
+    _set_state("restarting")
+    _append_log("comfy", "[INFO] Restarting ComfyUI...")
+    if _is_alive(tunnel_process):
+        _append_log("tunnel", "[INFO] Restarting tunnel...")
+
+    start_update, stop_update, restart_update = _button_updates("restarting")
+    yield (
+        _get_log_text(log_view),
+        "",
+        _status_html("restarting"),
+        start_update,
+        stop_update,
+        restart_update
     )
+
+    _stop_all()
+
+    provider = provider or "Platform Proxy"
+    _reset_logs(provider)
+    _append_log("comfy", "[INFO] Restart requested - starting a new ComfyUI session")
+    _set_state("starting")
+
+    _spawn_session(provider, token, start_command)
+    yield _ui_snapshot(log_view)
 
 
 def create_comfyui(visible=False):
@@ -615,24 +716,26 @@ def create_comfyui(visible=False):
             with gr.Row(
                 elem_classes=["comfy-log-controls"]
             ):
-                status = gr.HTML(
-                    _status_html(False)
+                log_view = gr.Radio(
+                    choices=[
+                        "Tunnel",
+                        "ComfyUI"
+                    ],
+                    value="ComfyUI",
+                    show_label=False,
+                    container=False,
+                    elem_classes=["comfy-log-selector"]
                 )
 
                 restart_button = gr.Button(
                     "Restart",
+                    interactive=False,
                     elem_classes=["comfy-restart-button"]
                 )
 
-        log_view = gr.Radio(
-            choices=[
-                "Logs A - Tunnel",
-                "Logs B - ComfyUI"
-            ],
-            value="Logs B - ComfyUI",
-            show_label=False,
-            elem_classes=["comfy-log-selector"]
-        )
+                status = gr.HTML(
+                    _status_html("stopped")
+                )
 
         logs = gr.Textbox(
             value="Ready.",
@@ -659,7 +762,7 @@ def create_comfyui(visible=False):
         )
 
         start_button.click(
-            fn=_start_comfy,
+            fn=start_comfy,
             inputs=[
                 provider,
                 token,
@@ -671,7 +774,8 @@ def create_comfyui(visible=False):
                 public_url,
                 status,
                 start_button,
-                stop_button
+                stop_button,
+                restart_button
             ],
             concurrency_limit=None,
             js="""(...args) => {
@@ -736,7 +840,8 @@ def create_comfyui(visible=False):
                 public_url,
                 status,
                 start_button,
-                stop_button
+                stop_button,
+                restart_button
             ],
             concurrency_limit=None
         )
@@ -754,9 +859,25 @@ def create_comfyui(visible=False):
                 public_url,
                 status,
                 start_button,
-                stop_button
+                stop_button,
+                restart_button
             ],
             concurrency_limit=None
+        )
+
+        refresh_timer = gr.Timer(value=0.5, active=True)
+        refresh_timer.tick(
+            fn=refresh_comfy_ui,
+            inputs=log_view,
+            outputs=[
+                logs,
+                public_url,
+                status,
+                start_button,
+                stop_button,
+                restart_button
+            ],
+            show_progress="hidden"
         )
 
     return page
