@@ -24,6 +24,7 @@ active_log_view = "ComfyUI"
 state_lock = threading.Lock()
 app_state = "stopped"
 current_public_url = ""
+current_provider = "Platform Proxy"
 session_id = 0
 
 
@@ -103,29 +104,6 @@ def _button_updates(state):
     )
 
 
-def _kill_process(process):
-    if not process:
-        return
-
-    try:
-        if process.poll() is None:
-            os.killpg(
-                os.getpgid(process.pid),
-                signal.SIGTERM
-            )
-
-            try:
-                process.wait(timeout=3)
-            except subprocess.TimeoutExpired:
-                os.killpg(
-                    os.getpgid(process.pid),
-                    signal.SIGKILL
-                )
-                process.wait()
-    except Exception:
-        pass
-
-
 def _runpod_url():
     pod_id = os.environ.get("RUNPOD_POD_ID")
 
@@ -140,16 +118,46 @@ def _extract_public_url(line):
         r"https://[a-zA-Z0-9.-]+\.trycloudflare\.com",
         r"https://[a-zA-Z0-9.-]+\.ngrok-free\.app",
         r"https://[a-zA-Z0-9.-]+\.ngrok\.io",
-        r"https://[a-zA-Z0-9.-]+\.share\.zrok\.io",
+        r"(?:https?://)?[a-zA-Z0-9.-]+\.shares\.zrok\.io",
+        r"(?:https?://)?[a-zA-Z0-9.-]+\.share\.zrok\.io",
     ]
 
     for pattern in patterns:
         match = re.search(pattern, line)
 
         if match:
-            return match.group(0)
+            url = match.group(0)
+            if not url.startswith(("http://", "https://")):
+                url = f"https://{url}"
+            return url
 
     return None
+
+
+def _zrok_environment_enabled():
+    try:
+        result = subprocess.run(
+            ["zrok2", "status"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=10,
+            check=False
+        )
+        return result.returncode == 0
+    except Exception:
+        return False
+
+
+def _ensure_zrok_enabled(token):
+    if _zrok_environment_enabled():
+        return
+
+    subprocess.run(
+        ["zrok2", "enable", token],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=True
+    )
 
 
 def _build_tunnel(provider, token):
@@ -214,16 +222,7 @@ def _build_tunnel(provider, token):
                 "Zrok token is required"
             )
 
-        subprocess.run(
-            [
-                "zrok2",
-                "enable",
-                token
-            ],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=True
-        )
+        _ensure_zrok_enabled(token)
 
         return [
             "zrok2",
@@ -290,7 +289,7 @@ def _invalidate_session():
     return session_id
 
 
-def _kill_process(process):
+def _kill_process(process, term_timeout=3):
     if not process:
         return
 
@@ -304,7 +303,7 @@ def _kill_process(process):
             return
 
         try:
-            process.wait(timeout=3)
+            process.wait(timeout=term_timeout)
             return
         except subprocess.TimeoutExpired:
             pass
@@ -322,7 +321,7 @@ def _kill_process(process):
         pass
 
 
-def _stop_all():
+def _stop_all(zrok_graceful=False):
     global comfy_process
     global tunnel_process
     global current_public_url
@@ -336,7 +335,11 @@ def _stop_all():
     comfy_process = None
     current_public_url = ""
 
-    _kill_process(current_tunnel)
+    if zrok_graceful:
+        _kill_process(current_tunnel, term_timeout=8)
+    else:
+        _kill_process(current_tunnel)
+
     _kill_process(current_comfy)
 
 
@@ -421,8 +424,10 @@ def _spawn_session(provider, token, start_command):
     global comfy_process
     global tunnel_process
     global current_public_url
+    global current_provider
 
     provider = provider or "Platform Proxy"
+    current_provider = provider
     start_command = (start_command or "").strip()
 
     if not start_command:
@@ -616,9 +621,14 @@ def restart_comfy(provider, token, start_command, log_view):
         restart_update
     )
 
-    _stop_all()
-
     provider = provider or "Platform Proxy"
+
+    if provider == "Zrok":
+        _append_log("tunnel", "[INFO] Gracefully stopping zrok share...")
+        _stop_all(zrok_graceful=True)
+    else:
+        _stop_all()
+
     _reset_logs(provider)
     _append_log("comfy", "[INFO] Restart requested - starting a new ComfyUI session")
     _set_state("starting")
@@ -709,12 +719,15 @@ def create_comfyui(visible=False):
         with gr.Row(
             elem_classes=["comfy-log-header"]
         ):
-            gr.HTML(
-                '<div class="comfy-log-title">LOGS</div>'
-            )
+            with gr.Column(
+                elem_classes=["comfy-log-left"]
+            ):
+                gr.HTML(
+                    '<div class="comfy-log-title">LOGS</div>'
+                )
 
-            with gr.Row(
-                elem_classes=["comfy-log-controls"]
+            with gr.Column(
+                elem_classes=["comfy-log-center"]
             ):
                 log_view = gr.Radio(
                     choices=[
@@ -727,6 +740,9 @@ def create_comfyui(visible=False):
                     elem_classes=["comfy-log-selector"]
                 )
 
+            with gr.Row(
+                elem_classes=["comfy-log-right"]
+            ):
                 restart_button = gr.Button(
                     "Restart",
                     interactive=False,
@@ -736,6 +752,7 @@ def create_comfyui(visible=False):
                 status = gr.HTML(
                     _status_html("stopped")
                 )
+
 
         logs = gr.Textbox(
             value="Ready.",
