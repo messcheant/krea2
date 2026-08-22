@@ -1,529 +1,732 @@
-/* =========================================================
-   DOWNLOAD PAGE
-   ========================================================= */
-
 .download-page {
-    gap: 20px !important;
-
     width: 100% !important;
-    height: auto !important;
+    min-width: 0 !important;
     min-height: 100% !important;
-
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
     padding-bottom: 56px !important;
-
     overflow: visible !important;
     box-sizing: border-box !important;
 }
 
+.download-page *,
+.download-page *::before,
+.download-page *::after {
+    box-sizing: border-box !important;
+}
 
-/* =========================================================
-   DOWNLOAD CARD
-   ========================================================= */
-
-.download-card {
+.download-config {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: min-content !important;
     display: flex !important;
     flex-direction: column !important;
-
-    width: 100% !important;
-    height: auto !important;
-
-    padding: 18px !important;
-    gap: 18px !important;
-
-    box-sizing: border-box !important;
-
-    background: transparent !important;
-
-    border: 1px solid #262c36 !important;
-    border-radius: 14px !important;
-
-    box-shadow: none !important;
-}
-
-
-/* =========================================================
-   RESET GRADIO WRAPPERS
-   ========================================================= */
-
-.download-card > div,
-.download-card .form,
-.download-card .block {
-    box-sizing: border-box !important;
-
-    background: transparent !important;
-    border: none !important; /* PERBAIKAN: Menghilangkan border pada kotak wrapper dalam */
-    box-shadow: none !important;
-}
-
-
-/* Jangan beri margin manual pada kolom.
-   Semua jarak horizontal diatur oleh gap pada .download-row */
-.download-card .download-row > * {
-    min-width: 0 !important;
-
-    margin: 0 !important;
-    box-sizing: border-box !important;
-}
-
-
-/* =========================================================
-   ROW LAYOUT
-   ========================================================= */
-
-.download-card .download-row {
-    display: flex !important;
-
-    width: 100% !important;
-
-    align-items: flex-end !important;
-    justify-content: space-between !important;
-
-    gap: 28px !important;
-
+    gap: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-
-    box-sizing: border-box !important;
-}
-
-
-/* Kedua kolom selalu mempunyai ukuran yang sama */
-.download-card .download-row > * {
-    flex: 1 1 0 !important;
-    width: 0 !important;
-}
-
-
-/* =========================================================
-   COMPONENT WRAPPERS
-   ========================================================= */
-
-.download-card .download-row > div,
-.download-card .wrap,
-.download-card .secondary-wrap {
+    overflow: hidden !important;
     background: transparent !important;
-    border: none !important; /* PERBAIKAN: Menghilangkan sisa border wrapper */
+    border: 1px solid #262c36 !important;
+    border-radius: 14px !important;
     box-shadow: none !important;
-
-    box-sizing: border-box !important;
 }
 
+.download-config > div {
+    min-width: 0 !important;
+}
 
-/* =========================================================
-   LABEL
-   ========================================================= */
+.download-config-header {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-height: 52px !important;
+    padding: 0 16px !important;
+    margin: 0 !important;
+    background: #101319 !important;
+    border-bottom: 1px solid #262c36 !important;
+    color: #d8dee8 !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+}
 
-.download-card label {
+.download-config-body {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: min-content !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 18px !important;
+    margin: 0 !important;
+    background: #0d1016 !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.download-config-body > div,
+.download-panel,
+.download-panel > div,
+.download-field,
+.download-select,
+.filename-radio,
+#download-mode-selector {
+    min-width: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#download-mode-selector,
+#download-mode-selector > div,
+#download-mode-selector .form,
+#download-mode-selector fieldset,
+#download-mode-selector [role="radiogroup"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+#download-mode-selector .wrap,
+#download-mode-selector [role="radiogroup"] {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    width: 100% !important;
+    gap: 0 !important;
+    padding: 4px !important;
+    background: #090c11 !important;
+    border: 1px solid #242a34 !important;
+    border-radius: 11px !important;
+}
+
+#download-mode-selector .wrap label,
+#download-mode-selector [role="radiogroup"] label {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    min-height: 36px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 14px !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    color: #7f8998 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
+    cursor: pointer !important;
+    transition: background .15s ease, color .15s ease !important;
+}
+
+#download-mode-selector input[type="radio"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+#download-mode-selector label:has(input:checked) {
+    background: #1b2230 !important;
+    color: #e6ebf3 !important;
+}
+
+#download-mode-selector label:hover {
+    background: #151a22 !important;
+    color: #d4dbe6 !important;
+}
+
+.download-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 16px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+.download-page .download-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    align-items: end !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 28px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.download-page .download-row > * {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: none !important;
+    margin: 0 !important;
+}
+
+.download-field,
+.download-field > div,
+.download-select,
+.download-select > div,
+.filename-radio,
+.filename-radio > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+}
+
+.download-panel label,
+.download-panel .label-wrap,
+.download-panel span[data-testid="block-info"] {
     color: #8f99a8 !important;
-
     font-size: 11px !important;
     font-weight: 600 !important;
     line-height: 1.2 !important;
-
     letter-spacing: .025em !important;
 }
 
-
-/* Label utama component */
-.download-card label:not(:has(input[type="radio"])) {
-    margin-bottom: 7px !important;
-}
-
-
-/* =========================================================
-   TEXTBOX / DROPDOWN / TEXTAREA
-   ========================================================= */
-
-.download-card input:not([type="radio"]),
-.download-card textarea,
-.download-card select {
+.download-field input,
+.download-field textarea {
     width: 100% !important;
-
+    min-width: 0 !important;
     height: 44px !important;
     min-height: 44px !important;
-
-    /* PERBAIKAN: Ubah padding atas dan bawah menjadi 13px agar text berada di tengah */
-    padding: 13px 14px !important; 
+    max-height: 44px !important;
+    padding: 0 14px !important;
     margin: 0 !important;
-
-    box-sizing: border-box !important;
-
     background: #0a0d12 !important;
-
     border: 1px solid #252b35 !important;
     border-radius: 9px !important;
-
     box-shadow: none !important;
-
     color: #cbd3df !important;
-
     font-size: 12px !important;
     line-height: 1.2 !important;
-
     resize: none !important;
+    overflow: hidden !important;
 }
 
-
-/* Focus */
-.download-card input:not([type="radio"]):focus,
-.download-card textarea:focus,
-.download-card select:focus {
+.download-field input:focus,
+.download-field textarea:focus {
     outline: none !important;
-
     border-color: #3d69bc !important;
     box-shadow: 0 0 0 1px #3d69bc !important;
 }
 
-
-/* Placeholder */
-.download-card input::placeholder,
-.download-card textarea::placeholder {
+.download-field input::placeholder,
+.download-field textarea::placeholder,
+.download-select input::placeholder {
     color: #657183 !important;
     opacity: 1 !important;
 }
 
-
-/* =========================================================
-   RADIO / FILENAME
-   ========================================================= */
-
-.download-card [data-testid="radio"],
-.download-card [data-testid="radio"] > div,
-.download-card [data-testid="radio"] .form,
-.download-card [data-testid="radio"] fieldset {
-    width: 100% !important;
-
-    padding: 0 !important;
-    margin: 0 !important;
-
+.download-select,
+.download-select > div,
+.download-select .wrap,
+.download-select .secondary-wrap {
     background: transparent !important;
-
     border: none !important;
     box-shadow: none !important;
-
-    box-sizing: border-box !important;
 }
 
+.download-select input,
+.download-select select,
+.download-select [role="combobox"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 38px 0 14px !important;
+    margin: 0 !important;
+    background: #0a0d12 !important;
+    border: 1px solid #252b35 !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+    color: #cbd3df !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+}
 
-/* Container pilihan radio */
-.download-card [data-testid="radio"] .wrap,
-.download-card [data-testid="radio"] .wrap:has(input[type="radio"]) {
+.download-select:focus-within input,
+.download-select:focus-within select,
+.download-select:focus-within [role="combobox"] {
+    outline: none !important;
+    border-color: #3d69bc !important;
+    box-shadow: 0 0 0 1px #3d69bc !important;
+}
+
+.filename-radio,
+.filename-radio > div,
+.filename-radio .form,
+.filename-radio fieldset {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.filename-radio .wrap,
+.filename-radio [role="radiogroup"] {
     display: flex !important;
     flex-direction: row !important;
-
-    align-items: center !important;
-    justify-content: flex-start !important;
-
     flex-wrap: nowrap !important;
-
     width: 100% !important;
-
-    height: 44px !important;
+    min-width: 0 !important;
     min-height: 44px !important;
-
-    gap: 18px !important;
-
-    padding: 0 !important;
+    gap: 0 !important;
+    padding: 4px !important;
     margin: 0 !important;
-
-    box-sizing: border-box !important;
-
-    background: transparent !important;
-
-    border: none !important;
-    border-radius: 0 !important;
-
+    background: #090c11 !important;
+    border: 1px solid #242a34 !important;
+    border-radius: 11px !important;
     box-shadow: none !important;
 }
 
-
-/* Radio option */
-.download-card [data-testid="radio"] label:has(input[type="radio"]),
-.download-card label:has(input[type="radio"]) {
-    display: inline-flex !important;
-    flex-direction: row !important;
-
-    align-items: center !important;
-    justify-content: flex-start !important;
-
-    flex: 0 0 auto !important;
-
-    width: auto !important;
+.filename-radio .wrap label,
+.filename-radio [role="radiogroup"] label {
+    flex: 1 1 0 !important;
     min-width: 0 !important;
-
-    height: 44px !important;
-    min-height: 44px !important;
-
-    gap: 8px !important;
-
-    padding: 0 !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    padding: 0 12px !important;
     margin: 0 !important;
-
-    box-sizing: border-box !important;
-
     background: transparent !important;
-
     border: none !important;
-    border-radius: 0 !important;
-
+    border-radius: 8px !important;
     box-shadow: none !important;
-
     color: #7f8998 !important;
-
     font-size: 11px !important;
     font-weight: 600 !important;
     line-height: 1 !important;
-
-    letter-spacing: .015em !important;
-
     white-space: nowrap !important;
-
     cursor: pointer !important;
-
-    transition:
-        color .15s ease,
-        opacity .15s ease !important;
+    transition: background .15s ease, color .15s ease !important;
 }
 
-
-/* Hover radio option */
-.download-card label:has(input[type="radio"]):hover {
-    background: transparent !important;
-    color: #d4dbe6 !important;
+.filename-radio input[type="radio"] {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
 }
 
-
-/* Active radio option */
-.download-card label:has(input[type="radio"]:checked) {
-    background: transparent !important;
-
-    border: none !important;
-    box-shadow: none !important;
-
+.filename-radio label:has(input:checked) {
+    background: #1b2230 !important;
     color: #e6ebf3 !important;
 }
 
+.filename-radio .wrap label:hover,
+.filename-radio [role="radiogroup"] label:hover {
+    background: #151a22 !important;
+    color: #d4dbe6 !important;
+}
 
-/* =========================================================
-   RADIO CIRCLE
-   ========================================================= */
+#bulk-download-file,
+#bulk-download-file > div,
+#bulk-download-file .wrap,
+#bulk-download-file .form {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
-.download-card input[type="radio"] {
-    appearance: none !important;
-    -webkit-appearance: none !important;
+#bulk-download-file .upload-container,
+#bulk-download-file [class*="upload-container"],
+#bulk-download-file [class*="drop"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 126px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 18px !important;
+    margin: 0 !important;
+    background: #0a0d12 !important;
+    border: 1px dashed #303846 !important;
+    border-radius: 10px !important;
+    box-shadow: none !important;
+}
 
-    position: relative !important;
-
-    display: inline-block !important;
-
-    flex: 0 0 14px !important;
-
-    width: 14px !important;
-    height: 14px !important;
-
-    min-width: 14px !important;
-    min-height: 14px !important;
-
-    max-width: 14px !important;
-    max-height: 14px !important;
-
+#bulk-download-file input[type="file"] {
+    width: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
     padding: 0 !important;
     margin: 0 !important;
+}
 
-    box-sizing: border-box !important;
-
-    background: transparent !important;
-
-    border: 2px solid #3b4553 !important;
-    border-radius: 50% !important;
-
+#bulk-download-file button {
+    min-height: 32px !important;
+    padding: 0 14px !important;
+    background: #121720 !important;
+    border: 1px solid #29313c !important;
+    border-radius: 8px !important;
     box-shadow: none !important;
-
-    cursor: pointer !important;
-
-    transition:
-        border-color .15s ease,
-        background .15s ease,
-        box-shadow .15s ease !important;
+    color: #c4ccd8 !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
 }
 
-
-/* Selected */
-.download-card input[type="radio"]:checked {
-    background: #3478f6 !important;
-    border-color: #3478f6 !important;
-
-    box-shadow:
-        inset 0 0 0 3px #0d1117 !important;
+#bulk-download-file button:hover {
+    background: #19202a !important;
+    border-color: #394454 !important;
 }
 
-
-/* Hover */
-.download-card input[type="radio"]:hover {
-    border-color: #657387 !important;
+#bulk-download-list,
+#bulk-download-list > div,
+#bulk-download-list .wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
-
-/* Selected + hover */
-.download-card input[type="radio"]:checked:hover {
-    background: #4c8cff !important;
-    border-color: #4c8cff !important;
+#bulk-download-list textarea {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 280px !important;
+    min-height: 280px !important;
+    max-height: 280px !important;
+    padding: 14px 16px !important;
+    margin: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    resize: none !important;
+    background: #0a0d12 !important;
+    border: 1px solid #252b35 !important;
+    border-radius: 9px !important;
+    box-shadow: none !important;
+    color: #cbd3df !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.55 !important;
+    white-space: pre-wrap !important;
+    overflow-wrap: anywhere !important;
+    scrollbar-width: thin !important;
 }
 
-
-/* Focus */
-.download-card input[type="radio"]:focus,
-.download-card input[type="radio"]:focus-visible {
+#bulk-download-list textarea:focus {
     outline: none !important;
-
-    box-shadow:
-        inset 0 0 0 3px #0d1117,
-        0 0 0 2px rgba(52, 120, 246, .18) !important;
+    border-color: #3d69bc !important;
+    box-shadow: 0 0 0 1px #3d69bc !important;
 }
 
+#bulk-download-status,
+#bulk-download-status > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: -5px 0 -2px 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 
-/* =========================================================
-   DOWNLOAD BUTTON
-   ========================================================= */
+.bulk-status {
+    width: 100% !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    line-height: 1.35 !important;
+    letter-spacing: .02em !important;
+}
+
+.bulk-status-ok {
+    color: #8f99a8 !important;
+}
+
+.bulk-status-error {
+    color: #d58b8b !important;
+}
+
+.bulk-status-empty {
+    color: #657183 !important;
+}
+
+.download-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    gap: 10px !important;
+    padding: 0 !important;
+    margin: 4px 0 0 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.download-actions > * {
+    min-width: 0 !important;
+}
 
 .download-button {
-    width: 100% !important;
-
+    flex: 0 0 180px !important;
+    width: 180px !important;
+    min-width: 180px !important;
+    max-width: 180px !important;
     min-height: 42px !important;
-
-    margin: 2px 0 0 0 !important;
-
+    margin: 0 !important;
     border-radius: 10px !important;
-
     font-size: 12px !important;
     font-weight: 700 !important;
-
-    box-sizing: border-box !important;
 }
 
-
-/* =========================================================
-   LOG TITLE
-   ========================================================= */
+.download-button:disabled {
+    opacity: .38 !important;
+    cursor: not-allowed !important;
+}
 
 .download-log-title {
     color: #657183 !important;
-
     font-size: 10px !important;
     font-weight: 700 !important;
-
     letter-spacing: .14em !important;
-
-    margin: 16px 0 10px 12px !important;
+    white-space: nowrap !important;
+    margin: 12px 0 8px 0 !important;
 }
-
-
-/* =========================================================
-   LOG CONTAINER
-   ========================================================= */
 
 #download-logs {
     width: 100% !important;
-
+    min-width: 0 !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-
     padding: 0 !important;
     margin: 0 0 40px 0 !important;
-
     overflow: visible !important;
-
     background: transparent !important;
-
     border: none !important;
     border-radius: 0 !important;
-
     box-shadow: none !important;
-
-    box-sizing: border-box !important;
 }
-
 
 #download-logs > div,
 #download-logs .wrap {
     width: 100% !important;
-
+    min-width: 0 !important;
     height: auto !important;
     min-height: 0 !important;
     max-height: none !important;
-
     padding: 0 !important;
     margin: 0 !important;
-
     overflow: visible !important;
-
     background: transparent !important;
-
     border: none !important;
-
     box-shadow: none !important;
-
-    box-sizing: border-box !important;
 }
-
-
-/* =========================================================
-   LOG TEXTAREA
-   ========================================================= */
 
 #download-logs textarea {
     display: block !important;
-
     width: 100% !important;
-
+    min-width: 0 !important;
     height: 340px !important;
     min-height: 340px !important;
     max-height: 340px !important;
-
     padding: 16px 16px 28px 16px !important;
     margin: 0 0 30px 0 !important;
-
-    box-sizing: border-box !important;
-
     overflow-y: auto !important;
     overflow-x: auto !important;
-
+    resize: none !important;
     scrollbar-width: none !important;
     -ms-overflow-style: none !important;
-
-    resize: none !important;
-
     background: #0b0e13 !important;
-
     border: 1px solid #202630 !important;
     border-radius: 10px !important;
-
     box-shadow: none !important;
-
     color: #c7d0dc !important;
-
     opacity: 1 !important;
-
-    font-family:
-        ui-monospace,
-        SFMono-Regular,
-        Menlo,
-        Monaco,
-        Consolas,
-        monospace !important;
-
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
     font-size: 11px !important;
     line-height: 1.55 !important;
-
     white-space: pre !important;
 }
 
-
-/* Hide log scrollbar */
 #download-logs textarea::-webkit-scrollbar {
     width: 0 !important;
     height: 0 !important;
-
     display: none !important;
+}
+
+@media (max-width: 900px) {
+    .download-page .download-row {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 18px !important;
+    }
+}
+
+/* =========================================================
+   GRADIO ROW / FORM NORMALIZATION
+   ========================================================= */
+
+.download-page .download-row,
+.download-page .download-row > div,
+.download-page .download-row > .form,
+.download-page .download-row .form {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+}
+
+/* Gradio menggabungkan komponen form di dalam wrapper .form.
+   Wrapper tersebut harus mengambil dua kolom sekaligus. */
+.download-page .download-row > .form {
+    grid-column: 1 / -1 !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    align-items: end !important;
+    gap: 16px !important;
+}
+
+.download-page .download-row > .form > *,
+.download-page .download-row > :not(.form) {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 1 1 0 !important;
+    margin: 0 !important;
+}
+
+/* Jika Gradio tidak membuat wrapper .form, row tetap dua kolom penuh. */
+.download-page .download-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+    gap: 16px !important;
+}
+
+/* =========================================================
+   REMOVE DEFAULT GRADIO SURFACES
+   ========================================================= */
+
+.download-config-body .form,
+.download-config-body .block,
+.download-config-body .wrap:not(#download-mode-selector .wrap):not(.filename-radio .wrap),
+.download-config-body .container,
+.download-panel .form,
+.download-panel .block {
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+}
+
+.download-page .download-row .download-field,
+.download-page .download-row .download-field > div,
+.download-page .download-row .download-select,
+.download-page .download-row .download-select > div,
+.download-page .download-row .filename-radio,
+.download-page .download-row .filename-radio > div,
+.download-page .download-row .filename-radio .form,
+.download-page .download-row .download-select .form,
+.download-page .download-row .download-field .form {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* =========================================================
+   INPUT TEXT VERTICAL ALIGNMENT
+   ========================================================= */
+
+.download-field textarea {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 13px 14px !important;
+    line-height: 16px !important;
+    overflow: hidden !important;
+}
+
+.download-field input {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding: 0 14px !important;
+    line-height: 42px !important;
+}
+
+.download-select input,
+.download-select select,
+.download-select [role="combobox"] {
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 42px !important;
+}
+
+/* Normalisasi label agar setiap pasangan kolom sejajar. */
+.download-row .download-field,
+.download-row .download-select,
+.download-row .filename-radio {
+    align-self: stretch !important;
+}
+
+.download-row .download-field > label,
+.download-row .download-select > label,
+.download-row .filename-radio > label {
+    margin-bottom: 7px !important;
+}
+
+/* =========================================================
+   BULK WIDTH NORMALIZATION
+   ========================================================= */
+
+#bulk-download-panel,
+#bulk-download-panel > div,
+#bulk-download-file,
+#bulk-download-list,
+#bulk-download-status {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: none !important;
+}
+
+@media (max-width: 900px) {
+    .download-page .download-row > .form {
+        grid-template-columns: minmax(0, 1fr) !important;
+        gap: 18px !important;
+    }
 }
