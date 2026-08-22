@@ -305,15 +305,20 @@
 
 .comfy-log-controls {
     flex: 0 0 auto !important;
-
     display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
     align-items: center !important;
-
+    justify-content: flex-end !important;
     width: auto !important;
-
-    gap: 12px !important;
-
+    min-width: 0 !important;
+    gap: 10px !important;
     margin: 0 !important;
+}
+
+.comfy-log-controls > * {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
 }
 
 
@@ -355,6 +360,26 @@
     background: #69c98f;
 }
 
+.comfy-status.starting,
+.comfy-status.restarting,
+.comfy-status.shutting-down {
+    color: #c9b77b;
+}
+
+.comfy-status.starting span,
+.comfy-status.restarting span,
+.comfy-status.shutting-down span {
+    background: #d5b85d;
+}
+
+.comfy-status.error {
+    color: #d79a9a;
+}
+
+.comfy-status.error span {
+    background: #d46f6f;
+}
+
 
 /* =========================
    RESTART
@@ -388,6 +413,11 @@
     border-color: #394454 !important;
 }
 
+.comfy-restart-button:disabled {
+    opacity: .38 !important;
+    cursor: not-allowed !important;
+}
+
 
 
 
@@ -396,15 +426,20 @@
    ========================= */
 
 .comfy-log-selector {
-    width: 100% !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 190px !important;
+    max-width: 220px !important;
     padding: 0 !important;
-    margin: 0 0 10px 0 !important;
+    margin: 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
 
 .comfy-log-selector > div {
+    width: auto !important;
+    min-width: 0 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -414,28 +449,31 @@
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    width: 100% !important;
+    width: auto !important;
+    min-width: 190px !important;
     gap: 0 !important;
-    padding: 4px !important;
+    padding: 3px !important;
     background: #090c11 !important;
     border: 1px solid #242a34 !important;
-    border-radius: 10px !important;
+    border-radius: 9px !important;
 }
 
 .comfy-log-selector label {
     flex: 1 1 0 !important;
-    min-height: 34px !important;
+    min-width: 88px !important;
+    min-height: 30px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     margin: 0 !important;
-    padding: 0 12px !important;
-    border-radius: 7px !important;
+    padding: 0 10px !important;
+    border-radius: 6px !important;
     background: transparent !important;
     color: #7f8998 !important;
     cursor: pointer !important;
-    font-size: 11px !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
+    white-space: nowrap !important;
 }
 
 .comfy-log-selector input[type="radio"] {
