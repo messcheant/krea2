@@ -278,49 +278,56 @@
    ========================= */
 
 .comfy-log-header {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto 1fr !important;
     align-items: center !important;
-
     width: 100% !important;
-
     gap: 14px !important;
-
-    margin: 12px 0 4px 0 !important;
+    margin: 12px 0 8px 0 !important;
 }
 
-
-.comfy-log-title {
-    flex: 1;
-
-    color: #657183;
-
-    font-size: 10px;
-    font-weight: 700;
-
-    letter-spacing: .14em;
+.comfy-log-left,
+.comfy-log-center,
+.comfy-log-right {
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
 }
 
+.comfy-log-left {
+    justify-self: start !important;
+    width: auto !important;
+}
 
-/* status + restart */
+.comfy-log-center {
+    justify-self: center !important;
+    width: auto !important;
+}
 
-.comfy-log-controls {
-    flex: 0 0 auto !important;
+.comfy-log-right {
+    justify-self: end !important;
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     justify-content: flex-end !important;
     width: auto !important;
-    min-width: 0 !important;
     gap: 10px !important;
-    margin: 0 !important;
 }
 
-.comfy-log-controls > * {
-    flex: 0 0 auto !important;
+.comfy-log-left > *,
+.comfy-log-center > *,
+.comfy-log-right > * {
     min-width: 0 !important;
 }
 
+.comfy-log-title {
+    color: #657183;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .14em;
+    white-space: nowrap;
+}
 
 /* =========================
    STATUS
